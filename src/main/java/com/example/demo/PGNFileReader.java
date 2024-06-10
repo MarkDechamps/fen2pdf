@@ -9,8 +9,6 @@ public class PGNFileReader {
 
     public static List<String> loadPgn(String filePath) {
         try {
-            // Path to the PGN file
-            //String filePath = "src/main/resources/static/example.pgn";
             File file = new File(filePath);
             Scanner scanner = new Scanner(file);
 
@@ -21,7 +19,7 @@ public class PGNFileReader {
             scanner.close();
 
             // Extract FEN notations from the PGN
-            String pgnContent = pgnBuilder.toString();
+            var pgnContent = pgnBuilder.toString();
             String[] fens = extractFENsFromPGN(pgnContent);
 
             return List.of(fens);
