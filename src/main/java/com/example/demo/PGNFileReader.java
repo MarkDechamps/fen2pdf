@@ -2,8 +2,10 @@ package com.example.demo;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class PGNFileReader {
 
@@ -20,9 +22,9 @@ public class PGNFileReader {
 
             // Extract FEN notations from the PGN
             var pgnContent = pgnBuilder.toString();
-            String[] fens = extractFENsFromPGN(pgnContent);
+            var fens = extractFENsFromPGN(pgnContent);
 
-            return List.of(fens);
+            return fens;
 
         } catch (FileNotFoundException e) {
             System.err.println("PGN file not found!");
@@ -30,22 +32,18 @@ public class PGNFileReader {
         return List.of();
     }
 
-    private static String[] extractFENsFromPGN(String pgnContent) {
-        // Split PGN content by game delimiter
-        String[] games = pgnContent.split("(?m)^\\s*$");
-
-        // Extract FEN notation from each game
-        String[] fens = new String[games.length];
-        for (int i = 0; i < games.length; i++) {
-            String game = games[i].trim();
-            String[] lines = game.split("\n");
-            for (String line : lines) {
-                if (line.startsWith("[FEN ")) {
-                    fens[i] = line.substring(line.indexOf("\"") + 1, line.lastIndexOf("\""));
-                    break;
-                }
-            }
-        }
-        return fens;
+    public static List<String> extractFENsFromPGN(String pgnContent) {
+        var games = Arrays.asList(pgnContent.split("(?m)^\\s*$"));
+        return games.stream()
+                .map(String::trim)
+                .map(game -> {
+                    List<String> lines = Arrays.asList(game.split("\n"));
+                    return lines.stream()
+                            .filter(line -> line.startsWith("[FEN "))
+                            .map(line -> line.substring(line.indexOf("\"") + 1, line.lastIndexOf("\"")))
+                            .findFirst()
+                            .orElse(null);
+                })
+                .collect(Collectors.toList());
     }
 }

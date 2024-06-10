@@ -8,11 +8,11 @@
 		<version>3.3.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>demo</artifactId>
+	<groupId>be.md</groupId>
+	<artifactId>Fen2pdf</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
+	<name>Fen2Pdf</name>
+	<description>FEN to PDF converter</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
@@ -42,6 +42,7 @@
 			<artifactId>imgscalr-lib</artifactId>
 			<version>4.2</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>
