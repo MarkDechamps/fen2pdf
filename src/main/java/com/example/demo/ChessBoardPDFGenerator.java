@@ -36,7 +36,7 @@ public class ChessBoardPDFGenerator {
 
         try (PDDocument document = new PDDocument()) {
             var images = fens.stream().map(ChessBoardPDFGenerator::generateChessBoardImage).toList();
-            addImagesToPDF(document, images);
+            addImagesToPDF(document, images,3);
             document.save("chessboard_images.pdf");
             System.out.println("PDF saved successfully : chessboard_images.pdf");
         } catch (IOException e) {
@@ -69,43 +69,33 @@ public class ChessBoardPDFGenerator {
         return target.toFile().getAbsolutePath();
     }
 
-    public static void addImagesToPDF(PDDocument document, List<String> imagePaths) throws IOException {
-        int imagesPerPage = 9; // 3 rows * 3 columns
-        int numPages = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
+    public static void addImagesToPDF(PDDocument document, List<String> imagePaths,int imagesPerRow) throws IOException {
+        int imagesPerPage = 9;
+        int numRows = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
 
-        for (int pageIndex = 0; pageIndex < numPages; pageIndex++) {
-            var page = new PDPage();
+        for (int pageIdx = 0; pageIdx < numRows; pageIdx++) {
+            PDPage page = new PDPage();
             document.addPage(page);
 
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-                int rowStartIdx = pageIndex * imagesPerPage;
+                int rowStartIdx = pageIdx * imagesPerPage;
                 int rowEndIdx = Math.min(rowStartIdx + imagesPerPage, imagePaths.size());
 
+                float maxWidth = page.getMediaBox().getWidth() / imagesPerRow; // Adjust as needed
+
                 for (int i = rowStartIdx; i < rowEndIdx; i++) {
-                    var imagePath = imagePaths.get(i);
+                    String imagePath = imagePaths.get(i);
                     var bufferedImage = ImageIO.read(new File(imagePath));
                     var output = new ByteArrayOutputStream();
                     ImageIO.write(bufferedImage, "png", output);
                     var image = PDImageXObject.createFromByteArray(document, output.toByteArray(), "image");
 
-                    // Define maximum width and height for the images
-                    float maxWidth = 100; // adjust as needed
-                    float maxHeight = 100; // adjust as needed
-
-                    // Calculate scaling factors to fit within the maximum dimensions while preserving aspect ratio
-                    float scaleX = Math.min(maxWidth / image.getWidth(), 1);
-                    float scaleY = Math.min(maxHeight / image.getHeight(), 1);
-                    float scale = Math.min(scaleX, scaleY);
-
-                    // Calculate image dimensions after scaling
+                    float scale = maxWidth / image.getWidth();
                     float width = image.getWidth() * scale;
                     float height = image.getHeight() * scale;
+                    float x = (i % imagesPerRow) * maxWidth;
+                    float y = page.getMediaBox().getHeight() - (Math.floorDiv(i, imagesPerRow) + 1) * height;
 
-                    // Calculate image position on the page
-                    float x = 50 + (i % 3) * (maxWidth + 50);
-                    float y = 600 - (((float) i / 3) + 1) * (maxHeight + 50);
-
-                    // Draw the scaled image on the page
                     contentStream.drawImage(image, x, y, width, height);
                 }
             }
