@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.util.ObjectUtils;
 
@@ -74,10 +76,23 @@ public class ChessBoardPDFGenerator {
         int numRows = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
 
         for (int pageIdx = 0; pageIdx < numRows; pageIdx++) {
-            PDPage page = new PDPage();
+            PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
 
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                // Add title
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
+                contentStream.beginText();
+                contentStream.newLineAtOffset(50, page.getMediaBox().getHeight() - 50);
+                contentStream.showText("Chessboard Images");
+                contentStream.endText();
+
+                // Add page number
+                contentStream.beginText();
+                contentStream.newLineAtOffset(page.getMediaBox().getWidth() - 100, page.getMediaBox().getHeight() - 50);
+                contentStream.showText("Page " + (pageIdx + 1));
+                contentStream.endText();
+
                 int rowStartIdx = pageIdx * imagesPerPage;
                 int rowEndIdx = Math.min(rowStartIdx + imagesPerPage, imagePaths.size());
 
