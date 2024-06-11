@@ -7,7 +7,7 @@ plugins {
 }
 
 launch4j {
-    mainClassName = 'be.md.ChessBoardPDFGenerator'
+    mainClassName = 'be.md.Fen2PdfUI'
     icon = "${projectDir}/icons/icon.ico"
 }
 
@@ -31,7 +31,7 @@ dependencies {
 }
 
 bootJar {
-    mainClass = 'be.md.ChessBoardPDFGenerator'
+    mainClass = 'be.md.Fen2PdfUI'
     exclude('org.projectlombok:lombok')
 }
 
@@ -58,5 +58,5 @@ runtime {
 }
 
 application {
-    mainClass = 'be.md.ChessBoardPDFGenerator' // Set the main class for the application
+    mainClass = 'be.md.Fen2PdfUI' // Set the main class for the application
 }

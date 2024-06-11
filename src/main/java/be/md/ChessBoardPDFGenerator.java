@@ -11,7 +11,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import javax.swing.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -25,20 +25,20 @@ import java.util.Optional;
 
 @Slf4j
 public class ChessBoardPDFGenerator {
-    public static void main(String[] args) {
-        log.info("Thanks for using FEN2PDF!");
-        log.info("Created by Mark Dechamps");
-        log.info("(B)eer licensed 2024");
-        log.info("Usage: put pgn files in the same folder as this program. They will be detected and parsed.");
-        log.info("Lines starting with '[FEN' are detected and converted to images using fentopng or chessvision.ai as a fallback.");
-        log.info("A pdf file is then generated containing these images");
+    private static Feedback genFeedback;
+
+    public static void main(Feedback feedback) {
+        genFeedback = feedback;
+        log("(B)eer licensed 2024");
+        log("PGN files in the same folder are detected and processed");
+        log("Generates a pdf file with chess diagrams from the FEN's in the pgn");
 
         var pgns = PgnFileLister.listPgnFilesInCurrentDirectory();
 
         if (!pgns.isEmpty()) {
-            log.info("Arguments found:" + Arrays.toString(pgns.toArray()));
+            log("Arguments found:" + Arrays.toString(pgns.toArray()));
             pgns.forEach(pgn -> {
-                log.info("Processing " + pgn);
+                log("Processing " + pgn);
                 var parsedPgn = PGNFileReader.loadPgn(pgn);
                 Path fileName = pgn.getFileName();
                 String name = fileName.toFile().getName();
@@ -48,21 +48,26 @@ public class ChessBoardPDFGenerator {
                 createPdfFileWithDiagramsFrom(name, parsedPgn);
             });
         } else {
-            log.info("Please put a pgn file in the same folder as this program.");
+            log("Please put a pgn file in the same folder as this program.");
             log.info("No pgn found in {}. Exiting.", new File(".").getAbsolutePath());
             System.exit(1);
         }
     }
 
+    private static void log(String msg) {
+        log.info(msg);
+        genFeedback.setText(msg);
+    }
+
     private static void createPdfFileWithDiagramsFrom(String title, List<String> fens) {
-        log.info("Title used: " + title);
-        log.info("FENS found:" + fens.size());
+        log("Title used: " + title);
+        log("FENS found:" + fens.size());
         try (PDDocument document = new PDDocument()) {
             var images = fens.stream().map(ChessBoardPDFGenerator::generateChessBoardImage)
                     .toList();
             addImagesToPDF(document, images, 3, 5, title);
             document.save(title + ".pdf");
-            log.info("PDF saved successfully : chessboard_images.pdf");
+            log("PDF saved successfully : " + title);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -75,15 +80,15 @@ public class ChessBoardPDFGenerator {
 
         return cachedFile.orElseGet(() -> {
             try {
-                var image= downloadFen2pngImage(fen);
-                log.info("Generated:"+image);
+                var image = downloadFen2pngImage(fen);
+                log.info("Generated:" + image);
                 return image;
             } catch (IOException e) {
-                log.info("Failed to download with Fen2png service. Trying chessvision.ai.");
+                log("Failed to download with Fen2png service. Trying chessvision.ai.");
                 try {
                     return downloadChessvisionImage(fen);
                 } catch (IOException e1) {
-                    log.info("Failed to download with chessvision.ai as well.");
+                    log("Failed to download with chessvision.ai as well.");
                     throw new RuntimeException(e);
                 }
             }
@@ -94,11 +99,11 @@ public class ChessBoardPDFGenerator {
     private static Optional<String> fetchFromCache(String fen) {
         Path tempFilePath = getTempFilePath(fen);
         boolean existsInCache = tempFilePath.toFile().exists();
-        if(existsInCache){
-            log.info("Fetching "+tempFilePath+" from cache");
+        if (existsInCache) {
+            log.info("Fetching " + tempFilePath + " from cache");
         }
 
-        return  existsInCache ? Optional.of(tempFilePath.toFile().getAbsolutePath()) : Optional.empty();
+        return existsInCache ? Optional.of(tempFilePath.toFile().getAbsolutePath()) : Optional.empty();
     }
 
     public static String downloadChessvisionImage(String fen) throws IOException {
@@ -106,7 +111,7 @@ public class ChessBoardPDFGenerator {
         Path target = getTempFilePath(fen);
         try (InputStream in = new URL(imageUrl).openStream()) {
             Files.copy(in, target);
-            log.info("Saved " + target);
+            log("Saved " + target);
             return target.toFile().getAbsolutePath();
         } catch (Exception e) {
             log.error("Can not create temp file {}", target, e);
@@ -128,7 +133,7 @@ public class ChessBoardPDFGenerator {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            log.info("Directory created: " + cacheDir.toAbsolutePath());
+            log("Directory created: " + cacheDir.toAbsolutePath());
         }
 
         String fileName = escapeForCache(fen);
@@ -164,7 +169,7 @@ public class ChessBoardPDFGenerator {
                 connection.disconnect();
             }
         } else {
-            log.info("Using " + target.toFile().getAbsolutePath() + " from cache ");
+            log("Using " + target.toFile().getAbsolutePath() + " from cache ");
         }
 
         return target.toFile().getAbsolutePath();
@@ -181,11 +186,11 @@ public class ChessBoardPDFGenerator {
             var image = ImageIO.read(bis);
             if (image != null) {
                 ImageIO.write(image, "png", target.toFile());
-                log.info("Image saved to: " + target+" CanRead:"+target.toFile().canRead());
+                log("Image saved to: " + target + " CanRead:" + target.toFile().canRead());
             } else {
                 throw new IOException("Failed to decode the image from the base64 data.");
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -195,7 +200,7 @@ public class ChessBoardPDFGenerator {
         int imagesPerPage = imagesPerRow * imagesPerRow;
         int numRows = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
 
-        log.info("Creating pdf of " + numRows + " images");
+        log("Creating pdf of " + numRows + " images");
         for (int pageIdx = 0; pageIdx < numRows; pageIdx++) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
@@ -217,7 +222,7 @@ public class ChessBoardPDFGenerator {
 
             for (int i = rowStartIdx; i < rowEndIdx; i++) {
                 String imagePath = imagePaths.get(i);
-                log.info("Reading:{}",imagePath);
+                log.info("Reading:{}", imagePath);
                 var bufferedImage = ImageIO.read(new File(imagePath));
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
                 ImageIO.write(bufferedImage, "png", output);
