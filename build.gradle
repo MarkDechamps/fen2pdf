@@ -2,18 +2,24 @@ plugins {
     id 'org.springframework.boot' version '3.3.0'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
     id 'java'
+    id 'org.beryx.runtime' version '1.13.0'
+    id 'edu.sc.seis.launch4j' version '3.0.5'
+}
+
+launch4j {
+    mainClassName = 'be.md.ChessBoardPDFGenerator'
+    icon = "${projectDir}/icons/icon.ico"
 }
 
 group = 'be.md'
 version = '0.0.1-SNAPSHOT'
-
+sourceCompatibility = '17'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.projectlombok:lombok'
     implementation 'org.jsoup:jsoup:1.14.3'
     implementation 'org.apache.pdfbox:pdfbox:2.0.27'
     implementation 'org.imgscalr:imgscalr-lib:4.2'
@@ -26,7 +32,7 @@ dependencies {
 
 bootJar {
     mainClass = 'be.md.ChessBoardPDFGenerator'
-    exclude 'org.projectlombok:lombok'
+    exclude('org.projectlombok:lombok')
 }
 
 tasks.withType(JavaCompile) {
@@ -35,4 +41,22 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(Test) {
     useJUnitPlatform()
+}
+
+runtime {
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    modules = [ 'java.base', 'java.logging', 'java.xml', 'java.desktop' ]  // add more modules if needed
+    jpackage {
+        imageName = 'Fen2Pdf'
+        installerType = 'exe'  // for Windows, use 'dmg' for macOS and 'deb' or 'rpm' for Linux
+        skipInstaller = false
+        installerOptions = [
+                '--win-console',  // for Windows to show the console output
+                '--icon', 'src/main/resources/icon.ico'  // specify your application icon here
+        ]
+    }
+}
+
+application {
+    mainClass = 'be.md.ChessBoardPDFGenerator' // Set the main class for the application
 }
