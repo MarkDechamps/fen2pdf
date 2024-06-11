@@ -62,13 +62,16 @@ public class ChessBoardPDFGenerator {
     }
 
     public static String generateChessBoardImage(String fen) {
-        
-        String apiUrl = "http://fen2png.com/?fen="+ fen;//.replaceAll(" ", "%20");
         try {
-            //return downloadChessvisionImage(fen);
             return downloadFen2pngImage(fen);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.info("Failed to download with Fen2png service. Trying chessvision.ai.");
+            try {
+                return downloadChessvisionImage(fen);
+            }catch(IOException e1) {
+                log.info("Failed to download with chessvision.ai as well.");
+                throw new RuntimeException(e);
+            }
         }
     }
 
