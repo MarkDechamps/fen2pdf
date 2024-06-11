@@ -194,10 +194,10 @@ public class ChessBoardPDFGenerator {
 
     public static void addImagesToPDF(PDDocument document, List<String> imagePaths, int imagesPerRow, int spacing, String title) throws IOException {
         int imagesPerPage = imagesPerRow * imagesPerRow;
-        int numRows = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
+        int numPages = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
 
-        log("Creating pdf of " + numRows + " images");
-        for (int pageIdx = 0; pageIdx < numRows; pageIdx++) {
+        log("Creating pdf of " + numPages + " pages");
+        for (int pageIdx = 0; pageIdx < numPages; pageIdx++) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
             addTitleAndPageNumber(document, title, page, pageIdx);
