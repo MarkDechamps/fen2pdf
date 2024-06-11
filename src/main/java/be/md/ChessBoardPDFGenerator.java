@@ -11,7 +11,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -27,13 +26,10 @@ import java.util.Optional;
 public class ChessBoardPDFGenerator {
     private static Feedback genFeedback;
 
-    public static void main(Feedback feedback) {
+    public static void process(Feedback feedback, List<Path> pgns) {
         genFeedback = feedback;
-        log("(B)eer licensed 2024");
         log("PGN files in the same folder are detected and processed");
         log("Generates a pdf file with chess diagrams from the FEN's in the pgn");
-
-        var pgns = PgnFileLister.listPgnFilesInCurrentDirectory();
 
         if (!pgns.isEmpty()) {
             log("Arguments found:" + Arrays.toString(pgns.toArray()));

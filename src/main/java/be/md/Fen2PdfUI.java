@@ -2,8 +2,6 @@ package be.md;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 
 public class Fen2PdfUI {
     private static final JButton startButton = new JButton("Start");
@@ -14,7 +12,14 @@ public class Fen2PdfUI {
 
         SwingUtilities.invokeLater(() -> {
             createAndShowGUI();
+
+            var pgns = PgnFileLister.listPgnFilesInCurrentDirectory();
+            textArea.append("Pgn files to process:\n");
+            pgns.forEach(pgn -> {
+                textArea.append(pgn.toString()+"\n");
+            });
         });
+
 
         startButton.addActionListener(e -> {
             if (!inProgress) {
@@ -25,7 +30,7 @@ public class Fen2PdfUI {
     }
 
     private static void createAndShowGUI() {
-        JFrame frame = new JFrame("FEN2PDF    Mark Dechamps 2024");
+        JFrame frame = new JFrame("FEN2PDF    Mark Dechamps      (B)eer licensed 2024");
         putIconOn(frame);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(640, 720);
@@ -34,9 +39,15 @@ public class Fen2PdfUI {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // Use BoxLayout with Y_AXIS orientation
         frame.add(panel);
 
-        // Add components with Box.createVerticalStrut for even spacing
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(startButton);
+        // Add padding to top and bottom of panel
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Add start button with centered alignment
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(startButton);
+        panel.add(buttonPanel);
+
+        // Add padding between button and text area
         panel.add(Box.createVerticalStrut(10));
 
         textArea.setEditable(false);
@@ -47,8 +58,8 @@ public class Fen2PdfUI {
     }
 
     private static void putIconOn(JFrame frame) {
-            ImageIcon img = new ImageIcon("icons/icon.png");
-            frame.setIconImage(img.getImage());
+        ImageIcon img = new ImageIcon("icons/icon.png");
+        frame.setIconImage(img.getImage());
     }
 
 
@@ -57,16 +68,19 @@ public class Fen2PdfUI {
     }
 
     private static class PdfGenerationWorker extends SwingWorker<Void, Void> {
+        public PdfGenerationWorker() {
+        }
+
         @Override
         protected Void doInBackground() {
-            ChessBoardPDFGenerator.main(new Feedback(textArea));
+            ChessBoardPDFGenerator.process(new Feedback(textArea), PgnFileLister.listPgnFilesInCurrentDirectory());
             return null;
         }
 
         @Override
         protected void done() {
             setBusyState(false);
-            JOptionPane.showMessageDialog(null, "PDF generation completed successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, "PDF generation completed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }
