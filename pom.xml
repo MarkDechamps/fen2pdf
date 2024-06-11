@@ -63,7 +63,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>com.example.demo.ChessBoardPDFGenerator</mainClass>
+					<mainClass>be.md.ChessBoardPDFGenerator</mainClass>
 				</configuration>
 				<executions>
 					<execution>

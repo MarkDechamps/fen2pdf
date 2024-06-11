@@ -1,4 +1,4 @@
-package com.example.demo;
+package be.md;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
