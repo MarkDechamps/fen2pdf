@@ -76,12 +76,8 @@ public class ChessBoardPDFGenerator {
     }
 
     public static String downloadChessvisionImage(String fen) throws IOException {
-        // ChessVision API endpoint for FEN to Image conversion
         String imageUrl = "https://fen2image.chessvision.ai/" + escapeFen(fen);
-
         Path target = getTempFilePath();
-
-        // Open a URL Stream and save the image to the temporary directory
         try (InputStream in = new URL(imageUrl).openStream()) {
             Files.copy(in, target);
             log.info("Saved " + target);
