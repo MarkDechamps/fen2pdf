@@ -7,17 +7,19 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -60,20 +62,21 @@ public class ChessBoardPDFGenerator {
     }
 
     public static String generateChessBoardImage(String fen) {
-        // ChessVision API endpoint for FEN to Image conversion
-        String apiUrl = "https://fen2image.chessvision.ai/" + fen.replaceAll(" ", "%20");
+        
+        String apiUrl = "http://fen2png.com/?fen="+ fen;//.replaceAll(" ", "%20");
         try {
-            return downloadImage(apiUrl);
+            //return downloadChessvisionImage(fen);
+            return downloadFen2pngImage(fen);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static String downloadImage(String imageUrl) throws IOException {
-        Path tempDir = Files.createTempDirectory("chessboard_images");
+    public static String downloadChessvisionImage(String fen) throws IOException {
+        // ChessVision API endpoint for FEN to Image conversion
+        String imageUrl = "https://fen2image.chessvision.ai/" + escapeFen(fen);
 
-        String randomFileName = UUID.randomUUID() + ".png";
-        Path target = tempDir.resolve(randomFileName);
+        Path target = getTempFilePath();
 
         // Open a URL Stream and save the image to the temporary directory
         try (InputStream in = new URL(imageUrl).openStream()) {
@@ -86,6 +89,57 @@ public class ChessBoardPDFGenerator {
             throw e;
         }
     }
+
+    private static String escapeFen(String fen) {
+        return fen.replaceAll(" ", "%20");
+    }
+
+    private static Path getTempFilePath() throws IOException {
+        Path tempDir = Files.createTempDirectory("chessboard_images");
+        String randomFileName = UUID.randomUUID() + ".png";
+        Path target = tempDir.resolve(randomFileName);
+        return target;
+    }
+
+    public static String downloadFen2pngImage(String fen) throws IOException {
+        String fen2PgnUrl = "https://fen2png.com/api/?fen=" + escapeFen(fen);
+
+        URL url = new URL(fen2PgnUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setDoInput(true);
+        Path target = getTempFilePath();
+
+        try (InputStream inputStream = connection.getInputStream()) {
+            Document doc = Jsoup.parse(inputStream, "UTF-8", fen2PgnUrl);
+            Element imgElement = doc.select("img").first();
+            if (imgElement != null) {
+                String src = imgElement.attr("src");
+                if (src.startsWith("data:image/png;base64,")) {
+                    String base64Data = src.substring("data:image/png;base64,".length());
+                    byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+                    try (ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes)) {
+                        BufferedImage image = ImageIO.read(bis);
+                        if (image != null) {
+                            ImageIO.write(image, "png", target.toFile());
+                            System.out.println("Image saved to: " + target);
+                        } else {
+                            throw new IOException("Failed to decode the image from the base64 data.");
+                        }
+                    }
+                } else {
+                    throw new IOException("Unexpected image format: " + src);
+                }
+            } else {
+                throw new IOException("No image element found in the HTML response.");
+            }
+        } finally {
+            connection.disconnect();
+        }
+        return target.toFile().getAbsolutePath();
+    }
+
+
 
     public static void addImagesToPDF(PDDocument document, List<String> imagePaths, int imagesPerRow, int spacing, String title) throws IOException {
         int imagesPerPage = imagesPerRow * imagesPerRow;
