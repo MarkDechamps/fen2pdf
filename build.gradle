@@ -1,5 +1,9 @@
 /**
  * The createExe gradle task will create the exe file in the launch4j folder
+ * The necessary folders are:
+ * bin
+ * conf
+ * lib
  *
  */
 plugins {
