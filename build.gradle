@@ -1,3 +1,7 @@
+/**
+ * The createExe gradle task will create the exe file in the launch4j folder
+ *
+ */
 plugins {
     id 'org.springframework.boot' version '3.3.0'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
@@ -9,8 +13,8 @@ plugins {
 launch4j {
     mainClassName = 'be.md.Fen2PdfUI'
     icon = "${projectDir}/icons/icon.ico"
+    bundledJrePath = 'jdk-17'
 }
-
 group = 'be.md'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
