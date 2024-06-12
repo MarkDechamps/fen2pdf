@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+application/jdk-17
+application/lib
