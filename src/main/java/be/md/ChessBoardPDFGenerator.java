@@ -27,7 +27,7 @@ import java.util.Optional;
 public class ChessBoardPDFGenerator {
     private static Feedback genFeedback;
 
-    public static void process(Feedback feedback, List<Path> pgns) {
+    public static void process(Feedback feedback, List<Path> pgns, int diagramsPerRow) {
         genFeedback = feedback;
         log("PGN files in the same folder are detected and processed");
         log("Generates a pdf file with chess diagrams from the FEN's in the pgn");
@@ -42,7 +42,7 @@ public class ChessBoardPDFGenerator {
                 if (name.endsWith(".pgn")) {
                     name = name.substring(0, name.length() - 4); // Remove the last 4 characters (.pgn)
                 }
-                createPdfFileWithDiagramsFrom(name, parsedPgn);
+                createPdfFileWithDiagramsFrom(name, parsedPgn,diagramsPerRow);
             });
         } else {
             log("Please put a pgn file in the same folder as this program.");
@@ -61,13 +61,13 @@ public class ChessBoardPDFGenerator {
         genFeedback.setText(msg);
     }
 
-    private static void createPdfFileWithDiagramsFrom(String title, List<String> fens) {
+    private static void createPdfFileWithDiagramsFrom(String title, List<String> fens, int diagramsPerRow) {
         log("Title used: " + title);
         log("FENS found:" + fens.size());
         try (PDDocument document = new PDDocument()) {
             var images = fens.stream().map(ChessBoardPDFGenerator::generateChessBoardImage)
                     .toList();
-            addImagesToPDF(document, images, 4, 5, title);
+            addImagesToPDF(document, images, diagramsPerRow, 5, title);
             document.save(title + ".pdf");
             log("PDF saved successfully : " + title);
         } catch (IOException e) {
@@ -208,7 +208,7 @@ public class ChessBoardPDFGenerator {
         int imagesPerPage = imagesPerRow * imagesPerRow;
         int numPages = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
 
-        log("Creating pdf "+title+" of " + numPages + " pages");
+        log("Creating pdf '"+title+"' of " + numPages + " pages");
         for (int pageIdx = 0; pageIdx < numPages; pageIdx++) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
@@ -222,7 +222,6 @@ public class ChessBoardPDFGenerator {
             int rowStartIdx = pageIdx * imagesPerPage;
             int rowEndIdx = Math.min(rowStartIdx + imagesPerPage, imagePaths.size());
 
-            // Calculate maximum width and height for an image based on the number of images per row and the spacing
             float availableWidth = page.getMediaBox().getWidth() - (imagesPerRow + 1) * spacing;
             float availableHeight = page.getMediaBox().getHeight() - 100 - (imagesPerRow + 1) * spacing; // Reduce height for title and page number
             float maxWidth = availableWidth / imagesPerRow;

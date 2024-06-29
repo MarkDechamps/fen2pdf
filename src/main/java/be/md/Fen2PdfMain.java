@@ -2,12 +2,16 @@ package be.md;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class Fen2PdfMain {
     private static final JButton startButton = new JButton("Start");
-    //private static final JTextArea textArea = new JTextArea(10, 30);
+    private static final SpinnerNumberModel spinnerModel = new SpinnerNumberModel(4, 1, 8, 1);
     private static final ScrollableTextImageList scrollableTextImageList = new ScrollableTextImageList();
+    private static final Color BACKGROUND_COLOR = Color.LIGHT_GRAY;
     private static boolean inProgress = false;
+    private static String inputDirectory;
 
     public static void main(String[] args) {
 
@@ -17,7 +21,6 @@ public class Fen2PdfMain {
             var pgns = PgnFileLister.listPgnFilesInCurrentDirectory();
             scrollableTextImageList.addItem("Pgn files to process:\n");
             pgns.forEach(pgn -> {
-                //textArea.append(pgn.toString()+"\n");
                 scrollableTextImageList.addItem(pgn.toString());
             });
         });
@@ -27,46 +30,62 @@ public class Fen2PdfMain {
             if (!inProgress) {
                 startButton.setEnabled(false);
                 setBusyState(true);
-                new PdfGenerationWorker().execute();
+                new PdfGenerationWorker(Integer.parseInt(spinnerModel.getValue().toString())).execute();
             }
         });
     }
 
     private static void createAndShowGUI() {
-        JFrame frame = new JFrame("FEN2PDF    Mark Dechamps      (B)eer licensed 2024");
-        putIconOn(frame);
+        var frame = new JFrame("FEN2PDF    Mark Dechamps      (B)eer licensed 2024");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(640, 720);
+        frame.getContentPane().setBackground(Color.BLUE);
+        putIconOn(frame);
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // Use BoxLayout with Y_AXIS orientation
-        frame.add(panel);
+        JPanel rootPanel = new JPanel();
+        rootPanel.setBackground(BACKGROUND_COLOR);
+        rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+        rootPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Add padding to top and bottom of panel
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Add start button with centered alignment
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        var buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setBackground(BACKGROUND_COLOR);
         buttonPanel.add(startButton);
-        panel.add(buttonPanel);
+        rootPanel.add(buttonPanel);
 
-        SpinnerNumberModel spinnerModel = new SpinnerNumberModel(4, 1, 8, 1);
+        // Add padding between button and spinner
+        rootPanel.add(Box.createVerticalStrut(10));
 
-        // Create the spinner with the SpinnerNumberModel
         JSpinner spinner = new JSpinner(spinnerModel);
+        spinner.setPreferredSize(new Dimension(50, 30)); // Set preferred size for spinner
+        JPanel spinnerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        spinnerPanel.setBackground(BACKGROUND_COLOR);
+        spinnerPanel.add(new JLabel("How many diagrams per row ? (1-8): "));
+        spinnerPanel.add(spinner);
+        rootPanel.add(spinnerPanel);
+        rootPanel.add(Box.createVerticalStrut(10));
 
-        // Set preferred size to ensure the spinner fits nicely
-        spinner.setPreferredSize(new Dimension(50, 30));
+        JButton selectDirButton = new JButton("Input directory");
+        selectDirButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Select input folder with pgn files");
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-        panel.add(spinner);
+            int inputFolder = fileChooser.showDialog(frame, "Select");
+            if (inputFolder == JFileChooser.APPROVE_OPTION) {
+                String selectedDir = fileChooser.getSelectedFile().getAbsolutePath();
+                inputDirectory = selectedDir;
+                JOptionPane.showMessageDialog(frame, "Selected Directory: " + selectedDir);
+            }
+        });
+        rootPanel.add(selectDirButton);
 
-        // Add padding between button and text area
-        panel.add(Box.createVerticalStrut(10));
-
-        //textArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(scrollableTextImageList);
-        panel.add(scrollPane);
+        scrollPane.setBackground(BACKGROUND_COLOR);
+        scrollableTextImageList.setBackground(BACKGROUND_COLOR);
+        scrollPane.setPreferredSize(new Dimension(600, 500));
+        rootPanel.add(scrollPane);
 
+        frame.add(rootPanel);
         frame.setVisible(true);
     }
 
@@ -81,12 +100,15 @@ public class Fen2PdfMain {
     }
 
     private static class PdfGenerationWorker extends SwingWorker<Void, Void> {
-        public PdfGenerationWorker() {
+        private final int diagramsPerRow;
+
+        public PdfGenerationWorker(int diagramsPerRow) {
+            this.diagramsPerRow = diagramsPerRow;
         }
 
         @Override
         protected Void doInBackground() {
-            ChessBoardPDFGenerator.process(new Feedback(scrollableTextImageList), PgnFileLister.listPgnFilesInCurrentDirectory());
+            ChessBoardPDFGenerator.process(new Feedback(scrollableTextImageList), PgnFileLister.listPgnFilesInCurrentDirectory(),diagramsPerRow);
             return null;
         }
 
