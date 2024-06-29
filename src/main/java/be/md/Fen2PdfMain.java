@@ -165,8 +165,10 @@ public class Fen2PdfMain {
 
     private static void setDefaultProperties() {
         try (OutputStream output = new FileOutputStream(CONFIG_FILE)) {
-            properties.setProperty("workingDirectory", "");
+            properties.setProperty("workingDirectory", new File("").getAbsolutePath());
             properties.store(output, "FEN2PDF Application Properties (Default)");
+            workingDirectory = properties.getProperty("workingDirectory");
+            selectDirButton.setText(workingDirectory);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -175,9 +177,9 @@ public class Fen2PdfMain {
     private static void loadProperties() {
         try (InputStream input = new FileInputStream(CONFIG_FILE)) {
             properties.load(input);
-            workingDirectory = properties.getProperty("workingDirectory", "");
+            workingDirectory = properties.getProperty("workingDirectory", new File("").getAbsolutePath());
             if (workingDirectory.isEmpty()) {
-                workingDirectory = ".";
+                workingDirectory = new File("").getAbsolutePath();
             }
             selectDirButton.setText(workingDirectory);
         } catch (IOException ex) {
