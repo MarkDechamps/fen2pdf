@@ -3,7 +3,7 @@ package be.md;
 import javax.swing.*;
 import java.awt.*;
 
-public class Fen2PdfUI {
+public class Fen2PdfMain {
     private static final JButton startButton = new JButton("Start");
     private static final JTextArea textArea = new JTextArea(10, 30);
     private static boolean inProgress = false;

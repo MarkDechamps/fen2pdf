@@ -15,7 +15,7 @@ plugins {
 }
 
 launch4j {
-    mainClassName = 'be.md.Fen2PdfUI'
+    mainClassName = 'be.md.Fen2PdfMain'
     icon = "${projectDir}/icons/icon.ico"
     bundledJrePath = 'jdk-17'
 }
@@ -39,7 +39,7 @@ dependencies {
 }
 
 bootJar {
-    mainClass = 'be.md.Fen2PdfUI'
+    mainClass = 'be.md.Fen2PdfMain'
     exclude('org.projectlombok:lombok')
 }
 
@@ -66,5 +66,5 @@ runtime {
 }
 
 application {
-    mainClass = 'be.md.Fen2PdfUI' // Set the main class for the application
+    mainClass = 'be.md.Fen2PdfMain' // Set the main class for the application
 }
