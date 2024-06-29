@@ -11,9 +11,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.Buffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,6 +53,11 @@ public class ChessBoardPDFGenerator {
         }
     }
 
+    private static void log(String msg, BufferedImage image) {
+        log.info(msg);
+        genFeedback.setText(msg,image);
+    }
+
     private static void log(String msg) {
         log.info(msg);
         genFeedback.setText(msg);
@@ -72,12 +80,18 @@ public class ChessBoardPDFGenerator {
     public static String generateChessBoardImage(String fen) {
         Optional<String> cachedFile = fetchFromCache(fen);
 
-        cachedFile.ifPresent(s -> log.info("Generated from cache:" + s));
+        cachedFile.ifPresent(s -> {
+            try {
+                log("Generated from cache:" + s,ImageIO.read(new File(s)));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         return cachedFile.orElseGet(() -> {
             try {
                 var image = downloadFen2pngImage(fen);
-                log.info("Generated:" + image);
+                log.info("Generated:" + image, image);
                 return image;
             } catch (IOException e) {
                 log("Failed to download with Fen2png service. Trying chessvision.ai.");
@@ -165,7 +179,7 @@ public class ChessBoardPDFGenerator {
                 connection.disconnect();
             }
         } else {
-            log("Using " + target.toFile().getAbsolutePath() + " from cache ");
+            log("Using " + target.toFile().getAbsolutePath() + " from cache ",ImageIO.read(target.toFile()));
         }
 
         return target.toFile().getAbsolutePath();
@@ -175,14 +189,14 @@ public class ChessBoardPDFGenerator {
         return src.startsWith("data:image/png;base64,");
     }
 
-    private static void writeBase64ImageTo(String src, Path target) throws IOException {
+    private static void writeBase64ImageTo(String src, Path target) {
         String base64Data = src.substring("data:image/png;base64,".length());
         var imageBytes = Base64.getDecoder().decode(base64Data);
         try (ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes)) {
             var image = ImageIO.read(bis);
             if (image != null) {
                 ImageIO.write(image, "png", target.toFile());
-                log("Image saved to: " + target + " CanRead:" + target.toFile().canRead());
+                log("Image saved to: " + target, image);
             } else {
                 throw new IOException("Failed to decode the image from the base64 data.");
             }

@@ -1,18 +1,24 @@
 package be.md;
 
 import javax.swing.*;
+import java.awt.image.BufferedImage;
 
 public class Feedback {
-    private final JTextArea message;
+    private ScrollableTextImageList lines;
 
-    public Feedback(JTextArea label) {
-        this.message = label;
+    public Feedback(ScrollableTextImageList list) {
+        this.lines=list;
     }
 
     public void setText(String text) {
         SwingUtilities.invokeLater(() -> {
-                    message.append(text + "\n");
-                    message.setCaretPosition(message.getDocument().getLength());
+            lines.addItem(text);
+                }
+        );
+    }
+    public void setText(String text, BufferedImage image) {
+        SwingUtilities.invokeLater(() -> {
+                    lines.addItem(image,text);
                 }
         );
     }

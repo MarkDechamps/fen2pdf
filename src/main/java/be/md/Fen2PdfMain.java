@@ -5,7 +5,8 @@ import java.awt.*;
 
 public class Fen2PdfMain {
     private static final JButton startButton = new JButton("Start");
-    private static final JTextArea textArea = new JTextArea(10, 30);
+    //private static final JTextArea textArea = new JTextArea(10, 30);
+    private static final ScrollableTextImageList scrollableTextImageList = new ScrollableTextImageList();
     private static boolean inProgress = false;
 
     public static void main(String[] args) {
@@ -14,15 +15,17 @@ public class Fen2PdfMain {
             createAndShowGUI();
 
             var pgns = PgnFileLister.listPgnFilesInCurrentDirectory();
-            textArea.append("Pgn files to process:\n");
+            scrollableTextImageList.addItem("Pgn files to process:\n");
             pgns.forEach(pgn -> {
-                textArea.append(pgn.toString()+"\n");
+                //textArea.append(pgn.toString()+"\n");
+                scrollableTextImageList.addItem(pgn.toString());
             });
         });
 
 
         startButton.addActionListener(e -> {
             if (!inProgress) {
+                startButton.setEnabled(false);
                 setBusyState(true);
                 new PdfGenerationWorker().execute();
             }
@@ -50,8 +53,8 @@ public class Fen2PdfMain {
         // Add padding between button and text area
         panel.add(Box.createVerticalStrut(10));
 
-        textArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(textArea);
+        //textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(scrollableTextImageList);
         panel.add(scrollPane);
 
         frame.setVisible(true);
@@ -73,13 +76,14 @@ public class Fen2PdfMain {
 
         @Override
         protected Void doInBackground() {
-            ChessBoardPDFGenerator.process(new Feedback(textArea), PgnFileLister.listPgnFilesInCurrentDirectory());
+            ChessBoardPDFGenerator.process(new Feedback(scrollableTextImageList), PgnFileLister.listPgnFilesInCurrentDirectory());
             return null;
         }
 
         @Override
         protected void done() {
             setBusyState(false);
+            startButton.setEnabled(true);
             JOptionPane.showMessageDialog(null, "PDF generation completed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }

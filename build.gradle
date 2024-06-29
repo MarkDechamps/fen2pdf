@@ -1,5 +1,6 @@
 /**
- * The createExe gradle task will create the exe file in the launch4j folder
+ * The createExe gradle task will create the exe file in the build\launch4j folder
+ * You should copy the exe (and libs if applicable) to the application folder
  * The necessary folders are:
  * bin
  * conf
