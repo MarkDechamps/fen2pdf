@@ -11,12 +11,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.Buffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,7 +53,7 @@ public class ChessBoardPDFGenerator {
 
     private static void log(String msg, BufferedImage image) {
         log.info(msg);
-        genFeedback.setText(msg,image);
+        genFeedback.setText(msg, image);
     }
 
     private static void log(String msg) {
@@ -69,7 +67,7 @@ public class ChessBoardPDFGenerator {
         try (PDDocument document = new PDDocument()) {
             var images = fens.stream().map(ChessBoardPDFGenerator::generateChessBoardImage)
                     .toList();
-            addImagesToPDF(document, images, 3, 5, title);
+            addImagesToPDF(document, images, 4, 5, title);
             document.save(title + ".pdf");
             log("PDF saved successfully : " + title);
         } catch (IOException e) {
@@ -82,7 +80,7 @@ public class ChessBoardPDFGenerator {
 
         cachedFile.ifPresent(s -> {
             try {
-                log("Generated from cache:" + s,ImageIO.read(new File(s)));
+                log("Generated from cache:" + s, ImageIO.read(new File(s)));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -179,7 +177,7 @@ public class ChessBoardPDFGenerator {
                 connection.disconnect();
             }
         } else {
-            log("Using " + target.toFile().getAbsolutePath() + " from cache ",ImageIO.read(target.toFile()));
+            log("Using " + target.toFile().getAbsolutePath() + " from cache ", ImageIO.read(target.toFile()));
         }
 
         return target.toFile().getAbsolutePath();
@@ -210,7 +208,7 @@ public class ChessBoardPDFGenerator {
         int imagesPerPage = imagesPerRow * imagesPerRow;
         int numPages = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
 
-        log("Creating pdf of " + numPages + " pages");
+        log("Creating pdf "+title+" of " + numPages + " pages");
         for (int pageIdx = 0; pageIdx < numPages; pageIdx++) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);

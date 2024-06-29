@@ -50,6 +50,16 @@ public class Fen2PdfMain {
         buttonPanel.add(startButton);
         panel.add(buttonPanel);
 
+        SpinnerNumberModel spinnerModel = new SpinnerNumberModel(4, 1, 8, 1);
+
+        // Create the spinner with the SpinnerNumberModel
+        JSpinner spinner = new JSpinner(spinnerModel);
+
+        // Set preferred size to ensure the spinner fits nicely
+        spinner.setPreferredSize(new Dimension(50, 30));
+
+        panel.add(spinner);
+
         // Add padding between button and text area
         panel.add(Box.createVerticalStrut(10));
 
