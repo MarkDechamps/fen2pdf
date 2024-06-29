@@ -27,7 +27,7 @@ import java.util.Optional;
 public class ChessBoardPDFGenerator {
     private static Feedback genFeedback;
 
-    public static void process(Feedback feedback, List<Path> pgns, int diagramsPerRow) {
+    public static void process(Feedback feedback, List<Path> pgns, int diagramsPerRow,Path location) {
         genFeedback = feedback;
         log("PGN files in the same folder are detected and processed");
         log("Generates a pdf file with chess diagrams from the FEN's in the pgn");
@@ -42,7 +42,7 @@ public class ChessBoardPDFGenerator {
                 if (name.endsWith(".pgn")) {
                     name = name.substring(0, name.length() - 4); // Remove the last 4 characters (.pgn)
                 }
-                createPdfFileWithDiagramsFrom(name, parsedPgn,diagramsPerRow);
+                createPdfFileWithDiagramsFrom(location,name, parsedPgn,diagramsPerRow);
             });
         } else {
             log("Please put a pgn file in the same folder as this program.");
@@ -61,14 +61,15 @@ public class ChessBoardPDFGenerator {
         genFeedback.setText(msg);
     }
 
-    private static void createPdfFileWithDiagramsFrom(String title, List<String> fens, int diagramsPerRow) {
+    private static void createPdfFileWithDiagramsFrom(Path location, String title, List<String> fens, int diagramsPerRow) {
         log("Title used: " + title);
         log("FENS found:" + fens.size());
         try (PDDocument document = new PDDocument()) {
             var images = fens.stream().map(ChessBoardPDFGenerator::generateChessBoardImage)
                     .toList();
             addImagesToPDF(document, images, diagramsPerRow, 5, title);
-            document.save(title + ".pdf");
+            String path = (location.toAbsolutePath().toString()+"\\"+ (title + ".pdf"));
+            document.save( path);
             log("PDF saved successfully : " + title);
         } catch (IOException e) {
             e.printStackTrace();

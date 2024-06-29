@@ -10,9 +10,9 @@ import java.util.List;
 
 public class PgnFileLister {
 
-    public static List<Path> listPgnFilesInCurrentDirectory() {
+    public static List<Path> listPgnFilesInCurrentDirectory(String input) {
         List<Path> pgnFiles = new ArrayList<>();
-        var currentDir = Paths.get(".");
+        var currentDir = Paths.get(input);
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(currentDir, "*.pgn")) {
             stream.iterator().forEachRemaining(pgnFiles::add);
