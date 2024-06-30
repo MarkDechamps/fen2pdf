@@ -35,3 +35,6 @@ build/
 
 application/jdk-17
 application/lib
+
+.gradle/
+/cache
