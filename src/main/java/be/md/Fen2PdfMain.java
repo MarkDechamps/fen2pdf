@@ -1,5 +1,8 @@
 package be.md;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -8,6 +11,8 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static be.md.Messages.*;
+import static java.awt.FlowLayout.*;
+import static javax.swing.JFileChooser.*;
 
 public class Fen2PdfMain {
     private static final String CONFIG_FILE = "config.properties"; // Properties file name
@@ -16,6 +21,7 @@ public class Fen2PdfMain {
     private static final SpinnerNumberModel spinnerModel = new SpinnerNumberModel(4, 1, 8, 1);
     private static final ScrollableTextImageList scrollableTextImageList = new ScrollableTextImageList();
     private static final Color BACKGROUND_COLOR = Color.LIGHT_GRAY;
+    private static final Logger log = LoggerFactory.getLogger(Fen2PdfMain.class);
     private static boolean inProgress = false;
     private static String workingDirectory;
     private static final JButton selectDirButton = new JButton(select_working_dir);
@@ -24,9 +30,7 @@ public class Fen2PdfMain {
         SwingUtilities.invokeLater(() -> {
             loadProperties();
             createAndShowGUI();
-            //addPgnFilesToLog();
         });
-
 
         startButton.addActionListener(e -> {
             if (!inProgress) {
@@ -52,11 +56,13 @@ public class Fen2PdfMain {
 
         var rootPanel = getRootPanel();
         rootPanel.add(selectNrDiagramsPerRow());
+        rootPanel.add(new ImagePanel("icons/image.png"));
         rootPanel.add(Box.createVerticalStrut(10));
         rootPanel.add(selectWorkingDir(frame));
         rootPanel.add(Box.createVerticalStrut(10));
         rootPanel.add(scollingTextRegion());
         rootPanel.add(generatePDFButton());
+
 
         frame.add(rootPanel);
         frame.setVisible(true);
@@ -79,7 +85,7 @@ public class Fen2PdfMain {
     }
 
     private static JPanel generatePDFButton() {
-        JPanel startButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JPanel startButtonPanel = new JPanel(new FlowLayout(CENTER));
         startButtonPanel.setBackground(BACKGROUND_COLOR);
         startButtonPanel.add(startButton);
         return startButtonPanel;
@@ -87,18 +93,18 @@ public class Fen2PdfMain {
 
     private static JPanel selectWorkingDir(JFrame frame) {
         selectDirButton.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
+            var fileChooser = new JFileChooser();
             fileChooser.setCurrentDirectory(new File(workingDirectory));
             fileChooser.setDialogTitle(file_chooser_title);
-            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            fileChooser.setFileSelectionMode(DIRECTORIES_ONLY);
 
             int inputFolder = fileChooser.showDialog(frame, file_chooser_select);
-            if (inputFolder == JFileChooser.APPROVE_OPTION) {
+            if (inputFolder == APPROVE_OPTION) {
                 setSelectedDir(fileChooser.getSelectedFile().getAbsolutePath());
                 addPgnFilesToLog();
             }
         });
-        JPanel dirSelectionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        var dirSelectionPanel = new JPanel(new FlowLayout(LEFT));
         dirSelectionPanel.add(new JLabel(file_chooser_select_dir));
         dirSelectionPanel.add(selectDirButton);
         dirSelectionPanel.setBackground(BACKGROUND_COLOR);
@@ -121,8 +127,7 @@ public class Fen2PdfMain {
     }
 
     private static JPanel selectNrDiagramsPerRow() {
-        // Spinner panel
-        JPanel spinnerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel spinnerPanel = new JPanel(new FlowLayout(LEFT));
         spinnerPanel.setBackground(BACKGROUND_COLOR);
         JSpinner spinner = new JSpinner(spinnerModel);
         spinner.setPreferredSize(new Dimension(50, 30));
