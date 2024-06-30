@@ -29,8 +29,7 @@ public class ChessBoardPDFGenerator {
 
     public static void process(Feedback feedback, List<Path> pgns, int diagramsPerRow,Path location) {
         genFeedback = feedback;
-        log("PGN files in the same folder are detected and processed");
-        log("Generates a pdf file with chess diagrams from the FEN's in the pgn");
+        log(Messages.program_help);
 
         if (!pgns.isEmpty()) {
             log("Arguments found:" + Arrays.toString(pgns.toArray()));
@@ -45,8 +44,7 @@ public class ChessBoardPDFGenerator {
                 createPdfFileWithDiagramsFrom(location,name, parsedPgn,diagramsPerRow);
             });
         } else {
-            log("Please put a pgn file in the same folder as this program.");
-            log.info("No pgn found in {}. Exiting.", new File(".").getAbsolutePath());
+            log.info("No pgn found in {}. Exiting.", location);
             System.exit(1);
         }
     }

@@ -1,7 +1,5 @@
 package be.md;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -9,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+
 
 public class PGNFileReader {
 
@@ -26,7 +25,7 @@ public class PGNFileReader {
             return extractFENsFromPGN(pgnContent);
 
         } catch (IOException e) {
-            System.err.println("PGN file not found!");
+            System.err.println(Messages.pgn_not_found);
         }
         return List.of();
     }

@@ -1,11 +1,8 @@
 package be.md;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +23,9 @@ public class ScrollableTextImageList extends JPanel {
         revalidate();
         repaint();
     }
+
     public void addItem(String text) {
-        TextImageItem item = new TextImageItem( text);
+        TextImageItem item = new TextImageItem(text);
         items.add(item);
         add(item);
         revalidate();
@@ -43,11 +41,11 @@ public class ScrollableTextImageList extends JPanel {
         public TextImageItem(BufferedImage image, String text) {
             this.text = text;
 
-            int maxWidth=100;
+            int maxWidth = 100;
             int newWidth = Math.min(image.getWidth(), maxWidth);
             int newHeight = (image.getHeight() * newWidth) / image.getWidth();
 
-            Image scaledImage =image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+            Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
             this.image = scaledImage;
             this.imageWidth = newWidth;
             this.imageHeight = newHeight;
@@ -59,9 +57,10 @@ public class ScrollableTextImageList extends JPanel {
             imageLabel.setToolTipText(text);
             add(imageLabel, BorderLayout.WEST);
         }
+
         public TextImageItem(String text) {
             this.text = text;
-            this.image=null;
+            this.image = null;
             this.imageWidth = 0;
             this.imageHeight = 0;
             setLayout(new BorderLayout());
@@ -73,7 +72,7 @@ public class ScrollableTextImageList extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            var preferredSize =isNull(image)?new Dimension(100,30): new Dimension(imageWidth, imageHeight + 10);
+            var preferredSize = isNull(image) ? new Dimension(100, 30) : new Dimension(imageWidth, imageHeight + 10);
             setPreferredSize(preferredSize);
         }
     }
