@@ -60,13 +60,12 @@ public class ChessBoardPDFGenerator {
     }
 
     private static void createPdfFileWithDiagramsFrom(Path location, String title, List<String> fens, int diagramsPerRow) {
-        log("Title used: " + title);
-        log("FENS found:" + fens.size());
+        log("Creating pdf with "+fens.size()+" diagrams.");
         try (PDDocument document = new PDDocument()) {
             var images = fens.stream().map(ChessBoardPDFGenerator::generateChessBoardImage)
                     .toList();
             addImagesToPDF(document, images, diagramsPerRow, 5, title);
-            String path = (location.toAbsolutePath().toString()+"\\"+ (title + ".pdf"));
+            var path = (location.toAbsolutePath() +"\\"+ (title + ".pdf"));
             document.save( path);
             log("PDF saved successfully : " + title);
         } catch (IOException e) {
@@ -88,14 +87,16 @@ public class ChessBoardPDFGenerator {
         return cachedFile.orElseGet(() -> {
             try {
                 var image = downloadFen2pngImage(fen);
-                log.info("Generated:" + image, image);
+                log.info("Generated:{}", image);
                 return image;
             } catch (IOException e) {
-                log("Failed to download with Fen2png service. Trying chessvision.ai.");
+                log(Messages.failed_to_download_fen2pgn);
                 try {
-                    return downloadChessvisionImage(fen);
+                    var image = downloadChessvisionImage(fen);
+                    log.info("Generated chessvision.ai:{}", image);
+                    return image;
                 } catch (IOException e1) {
-                    log("Failed to download with chessvision.ai as well.");
+                    log(Messages.failed_to_download_chessvision_ai);
                     throw new RuntimeException(e);
                 }
             }
@@ -107,7 +108,7 @@ public class ChessBoardPDFGenerator {
         Path tempFilePath = getTempFilePath(fen);
         boolean existsInCache = tempFilePath.toFile().exists();
         if (existsInCache) {
-            log.info("Fetching " + tempFilePath + " from cache");
+            log.info("Fetching {} from cache", tempFilePath);
         }
 
         return existsInCache ? Optional.of(tempFilePath.toFile().getAbsolutePath()) : Optional.empty();

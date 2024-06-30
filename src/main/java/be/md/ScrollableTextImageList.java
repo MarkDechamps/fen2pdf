@@ -14,6 +14,7 @@ public class ScrollableTextImageList extends JPanel {
     public ScrollableTextImageList() {
         this.items = new ArrayList<>();
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        add(Box.createVerticalGlue());
     }
 
     public void addItem(BufferedImage image, String text) {

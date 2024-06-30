@@ -13,4 +13,6 @@ public class Messages {
     public static String succes="Success";
     public static String pgn_not_found="PGN file not found!";
     public static String program_help="Generates a pdf file with chess diagrams from the FEN's in the pgn";
+    public static String failed_to_download_fen2pgn="Failed to download with Fen2png service. Trying chessvision.ai.";
+    public static String failed_to_download_chessvision_ai="Failed to download with chessvision.ai as well.";
 }

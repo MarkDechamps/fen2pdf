@@ -7,29 +7,24 @@ import java.nio.file.Path;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static be.md.Messages.*;
+
 public class Fen2PdfMain {
     private static final String CONFIG_FILE = "config.properties"; // Properties file name
     private static final Properties properties = new Properties();
-    private static final JButton startButton = new JButton(Messages.generate_pdf);
+    private static final JButton startButton = new JButton(generate_pdf);
     private static final SpinnerNumberModel spinnerModel = new SpinnerNumberModel(4, 1, 8, 1);
     private static final ScrollableTextImageList scrollableTextImageList = new ScrollableTextImageList();
     private static final Color BACKGROUND_COLOR = Color.LIGHT_GRAY;
     private static boolean inProgress = false;
     private static String workingDirectory;
-    private static final JButton selectDirButton = new JButton(Messages.select_working_dir);
+    private static final JButton selectDirButton = new JButton(select_working_dir);
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             loadProperties();
             createAndShowGUI();
-            var pgns = PgnFileLister.listPgnFilesInCurrentDirectory(".");
-
-
-            String commaSeparatedPaths = pgns.stream()
-                    .map(Path::toString)
-                    .collect(Collectors.joining(", "));
-
-            scrollableTextImageList.addItem(Messages.pgn_files_to_process + commaSeparatedPaths);
+            //addPgnFilesToLog();
         });
 
 
@@ -49,7 +44,7 @@ public class Fen2PdfMain {
     }
 
     private static void createAndShowGUI() {
-        JFrame frame = new JFrame(Messages.title);
+        JFrame frame = new JFrame(title);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(640, 720);
         frame.getContentPane().setBackground(BACKGROUND_COLOR);
@@ -94,17 +89,17 @@ public class Fen2PdfMain {
         selectDirButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setCurrentDirectory(new File(workingDirectory));
-            fileChooser.setDialogTitle(Messages.file_chooser_title);
+            fileChooser.setDialogTitle(file_chooser_title);
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-            int inputFolder = fileChooser.showDialog(frame, Messages.file_chooser_select);
+            int inputFolder = fileChooser.showDialog(frame, file_chooser_select);
             if (inputFolder == JFileChooser.APPROVE_OPTION) {
                 setSelectedDir(fileChooser.getSelectedFile().getAbsolutePath());
-
+                addPgnFilesToLog();
             }
         });
         JPanel dirSelectionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        dirSelectionPanel.add(new JLabel(Messages.file_chooser_select_dir));
+        dirSelectionPanel.add(new JLabel(file_chooser_select_dir));
         dirSelectionPanel.add(selectDirButton);
         dirSelectionPanel.setBackground(BACKGROUND_COLOR);
         return dirSelectionPanel;
@@ -116,13 +111,22 @@ public class Fen2PdfMain {
         saveProperties();
     }
 
+    private static void addPgnFilesToLog() {
+        var pgns = PgnFileLister.listPgnFilesInCurrentDirectory(workingDirectory);
+        var commaSeparatedPaths = pgns.stream()
+                .map(Path::toString)
+                .collect(Collectors.joining(", "));
+
+        scrollableTextImageList.addItem(pgn_files_to_process + commaSeparatedPaths);
+    }
+
     private static JPanel selectNrDiagramsPerRow() {
         // Spinner panel
         JPanel spinnerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         spinnerPanel.setBackground(BACKGROUND_COLOR);
         JSpinner spinner = new JSpinner(spinnerModel);
         spinner.setPreferredSize(new Dimension(50, 30));
-        spinnerPanel.add(new JLabel(Messages.how_many_diagrams));
+        spinnerPanel.add(new JLabel(how_many_diagrams));
         spinnerPanel.add(spinner);
         return spinnerPanel;
     }
@@ -155,5 +159,6 @@ public class Fen2PdfMain {
         } catch (IOException ex) {
             setSelectedDir(new File("").getAbsolutePath());
         }
+        addPgnFilesToLog();
     }
 }
