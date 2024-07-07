@@ -39,3 +39,17 @@ application/lib
 .gradle/
 gradle/*
 /cache
+/config.properties
+/application/config.properties
+/de penning.pdf
+/application/de penning.pgn
+/de penning.pgn
+/input1/example.pdf
+/example.pdf
+/input1/example.pgn
+/application/fen2pdf.exe
+/application/fen2pgn_1.0.zip
+/gradlew
+/gradlew.bat
+/icons/icon.ico
+/application/icons/icon.png
