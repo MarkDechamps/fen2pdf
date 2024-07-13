@@ -56,13 +56,13 @@ public class Fen2PdfMain {
 
         var rootPanel = getRootPanel();
         rootPanel.add(selectNrDiagramsPerRow());
-        rootPanel.add(new ImagePanel("icons/image.png"));
+        rootPanel.add(new ImagePanel("icons/icon.png"));
         rootPanel.add(Box.createVerticalStrut(10));
         rootPanel.add(selectWorkingDir(frame));
         rootPanel.add(Box.createVerticalStrut(10));
         rootPanel.add(scollingTextRegion());
         rootPanel.add(generatePDFButton());
-
+        rootPanel.add(new Thanks());
 
         frame.add(rootPanel);
         frame.setVisible(true);

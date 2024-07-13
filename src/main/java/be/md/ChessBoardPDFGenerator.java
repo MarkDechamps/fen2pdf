@@ -91,14 +91,15 @@ public class ChessBoardPDFGenerator {
                 return image;
             } catch (IOException e) {
                 log(Messages.failed_to_download_fen2pgn);
-                try {
-                    var image = downloadChessvisionImage(fen);
-                    log.info("Generated chessvision.ai:{}", image);
-                    return image;
-                } catch (IOException e1) {
-                    log(Messages.failed_to_download_chessvision_ai);
-                    throw new RuntimeException(e);
-                }
+//                try {
+//                    var image = downloadChessvisionImage(fen);
+//                    log.info("Generated chessvision.ai:{}", image);
+//                    return image;
+//                } catch (IOException e1) {
+//                    log(Messages.failed_to_download_chessvision_ai);
+//                    throw new RuntimeException(e);
+//                }
+                throw new RuntimeException(e);
             }
         });
 
@@ -112,20 +113,6 @@ public class ChessBoardPDFGenerator {
         }
 
         return existsInCache ? Optional.of(tempFilePath.toFile().getAbsolutePath()) : Optional.empty();
-    }
-
-    public static String downloadChessvisionImage(String fen) throws IOException {
-        String imageUrl = "https://fen2image.chessvision.ai/" + escapeFen(fen);
-        Path target = getTempFilePath(fen);
-        try (InputStream in = new URL(imageUrl).openStream()) {
-            Files.copy(in, target);
-            log("Saved " + target);
-            return target.toFile().getAbsolutePath();
-        } catch (Exception e) {
-            log.error("Can not create temp file {}", target, e);
-            e.printStackTrace();
-            throw e;
-        }
     }
 
     private static String escapeFen(String fen) {
