@@ -6,6 +6,15 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+
+import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
+
 class ImagePanel extends JPanel {
     private Image image;
 
@@ -21,12 +30,33 @@ class ImagePanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (image != null) {
-            g.drawImage(image, 0, 0, this.getWidth(), this.getHeight(), this);
+            int panelWidth = this.getWidth();
+            int panelHeight = this.getHeight();
+            int imageWidth = image.getWidth(this);
+            int imageHeight = image.getHeight(this);
+
+            double aspectRatio = (double) imageWidth / imageHeight;
+            int newWidth, newHeight;
+
+            if (panelWidth < panelHeight * aspectRatio) {
+                newWidth = panelWidth;
+                newHeight = (int) (panelWidth / aspectRatio);
+            } else {
+                newHeight = panelHeight;
+                newWidth = (int) (panelHeight * aspectRatio);
+            }
+
+            int x = (panelWidth - newWidth) / 2;
+            int y = (panelHeight - newHeight) / 2;
+
+            g.drawImage(image, x, y, newWidth, newHeight, this);
         }
     }
 
     @Override
     public Dimension getPreferredSize() {
-        return image != null ? new Dimension(image.getWidth(this), image.getHeight(this)) : super.getPreferredSize();
+        return ofNullable(image)
+                .map(image-> new Dimension(image.getWidth(this), image.getHeight(this)))
+                .orElseGet(super::getPreferredSize);
     }
 }

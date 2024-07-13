@@ -32,19 +32,6 @@ public class Fen2PdfMain {
             createAndShowGUI();
         });
 
-        startButton.addActionListener(e -> {
-            if (!inProgress) {
-                startButton.setEnabled(false);
-                setBusyState(true);
-                int diagramsPerRow = Integer.parseInt(spinnerModel.getValue().toString());
-                Runnable whenDone = () -> {
-                    setBusyState(false);
-                    startButton.setEnabled(true);
-                };
-                var pdfWorker = new PdfGenerationWorker(diagramsPerRow, whenDone, workingDirectory, new Feedback(scrollableTextImageList));
-                pdfWorker.execute();
-            }
-        });
     }
 
     private static void createAndShowGUI() {
@@ -56,16 +43,39 @@ public class Fen2PdfMain {
 
         var rootPanel = getRootPanel();
         rootPanel.add(selectNrDiagramsPerRow());
-        rootPanel.add(new ImagePanel("icons/icon.png"));
         rootPanel.add(Box.createVerticalStrut(10));
         rootPanel.add(selectWorkingDir(frame));
         rootPanel.add(Box.createVerticalStrut(10));
         rootPanel.add(scollingTextRegion());
         rootPanel.add(generatePDFButton());
-        rootPanel.add(new Thanks());
+
+
+        JPanel bottom = new JPanel();
+        bottom.setBackground(BACKGROUND_COLOR);
+        var image = new ImagePanel("icons/icon.png");
+        image.setBackground(BACKGROUND_COLOR);
+        bottom.add(image);
+
+        footer(bottom);
+
+        rootPanel.add(bottom);
 
         frame.add(rootPanel);
         frame.setVisible(true);
+    }
+
+    private static void footer(JPanel bottom) {
+        JPanel bottomText = new JPanel();
+        bottomText.setLayout(new BoxLayout(bottomText, BoxLayout.Y_AXIS));
+        bottomText.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        bottomText.setBackground(BACKGROUND_COLOR);
+        var fen2Pgn = new HyperLink("Made possible by: fen2pgn", link_fen2pgn);
+        fen2Pgn.setBackground(BACKGROUND_COLOR);
+        bottomText.add(fen2Pgn);
+        var pairFx = new HyperLink("Try Pairfx! Free tournament software for in the classroom or club", "https://sourceforge.net/projects/pairfx/");
+        pairFx.setBackground(BACKGROUND_COLOR);
+        bottomText.add(pairFx);
+        bottom.add(bottomText);
     }
 
     private static JScrollPane scollingTextRegion() {
@@ -88,6 +98,21 @@ public class Fen2PdfMain {
         JPanel startButtonPanel = new JPanel(new FlowLayout(CENTER));
         startButtonPanel.setBackground(BACKGROUND_COLOR);
         startButtonPanel.add(startButton);
+
+        startButton.addActionListener(e -> {
+            if (!inProgress) {
+                startButton.setEnabled(false);
+                setBusyState(true);
+                int diagramsPerRow = Integer.parseInt(spinnerModel.getValue().toString());
+                Runnable whenDone = () -> {
+                    setBusyState(false);
+                    startButton.setEnabled(true);
+                    FolderOpener.openFolder(workingDirectory);
+                };
+                var pdfWorker = new PdfGenerationWorker(diagramsPerRow, whenDone, workingDirectory, new Feedback(scrollableTextImageList));
+                pdfWorker.execute();
+            }
+        });
         return startButtonPanel;
     }
 

@@ -26,6 +26,6 @@ public class PdfGenerationWorker extends SwingWorker<Void, Void> {
     @Override
     protected void done() {
         done.run();
-        JOptionPane.showMessageDialog(null, Messages.pdf_generation_succes, Messages.succes, JOptionPane.INFORMATION_MESSAGE);
+        //JOptionPane.showMessageDialog(null, Messages.pdf_generation_succes, Messages.succes, JOptionPane.INFORMATION_MESSAGE);
     }
 }
