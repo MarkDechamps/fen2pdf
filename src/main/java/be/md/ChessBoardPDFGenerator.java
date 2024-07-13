@@ -91,14 +91,6 @@ public class ChessBoardPDFGenerator {
                 return image;
             } catch (IOException e) {
                 log(Messages.failed_to_download_fen2pgn);
-//                try {
-//                    var image = downloadChessvisionImage(fen);
-//                    log.info("Generated chessvision.ai:{}", image);
-//                    return image;
-//                } catch (IOException e1) {
-//                    log(Messages.failed_to_download_chessvision_ai);
-//                    throw new RuntimeException(e);
-//                }
                 throw new RuntimeException(e);
             }
         });
@@ -239,7 +231,6 @@ public class ChessBoardPDFGenerator {
 
     private static void addTitleAndPageNumber(PDDocument document, String title, PDPage page, int pageIdx) throws IOException {
         try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-            // Add title
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
             contentStream.beginText();
             contentStream.newLineAtOffset(50, page.getMediaBox().getHeight() - 50);

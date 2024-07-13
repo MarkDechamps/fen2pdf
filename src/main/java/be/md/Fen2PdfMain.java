@@ -69,7 +69,7 @@ public class Fen2PdfMain {
         bottomText.setLayout(new BoxLayout(bottomText, BoxLayout.Y_AXIS));
         bottomText.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         bottomText.setBackground(BACKGROUND_COLOR);
-        var fen2Pgn = new HyperLink("Made possible by: fen2pgn", link_fen2pgn);
+        var fen2Pgn = new HyperLink("Made possible by fen2pgn", link_fen2pgn);
         fen2Pgn.setBackground(BACKGROUND_COLOR);
         bottomText.add(fen2Pgn);
         var pairFx = new HyperLink("Try Pairfx! Free tournament software for in the classroom or club", "https://sourceforge.net/projects/pairfx/");
