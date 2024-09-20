@@ -23,11 +23,13 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
+import static be.md.MirrorFen.mirrorFenVertically;
+
 @Slf4j
 public class ChessBoardPDFGenerator {
     private static Feedback genFeedback;
 
-    public static void process(Feedback feedback, List<Path> pgns, int diagramsPerRow,Path location) {
+    public static void process(Feedback feedback, List<Path> pgns, Metadata metadata, Path location) {
         genFeedback = feedback;
         log(Messages.program_help);
 
@@ -41,7 +43,7 @@ public class ChessBoardPDFGenerator {
                 if (name.endsWith(".pgn")) {
                     name = name.substring(0, name.length() - 4); // Remove the last 4 characters (.pgn)
                 }
-                createPdfFileWithDiagramsFrom(location,name, parsedPgn,diagramsPerRow);
+                createPdfFileWithDiagramsFrom(location, name, parsedPgn, metadata);
             });
         } else {
             log.info("No pgn found in {}. Exiting.", location);
@@ -59,14 +61,16 @@ public class ChessBoardPDFGenerator {
         genFeedback.setText(msg);
     }
 
-    private static void createPdfFileWithDiagramsFrom(Path location, String title, List<String> fens, int diagramsPerRow) {
-        log("Creating pdf with "+fens.size()+" diagrams.");
+    private static void createPdfFileWithDiagramsFrom(Path location, String title, List<String> fens, Metadata metadata) {
+        log("Creating pdf with " + fens.size() + " diagrams.");
         try (PDDocument document = new PDDocument()) {
-            var images = fens.stream().map(ChessBoardPDFGenerator::generateChessBoardImage)
+            var images = fens.stream()
+                    .map(fen -> metadata.mirror ? mirrorFenVertically(fen) : fen)
+                    .map(ChessBoardPDFGenerator::generateChessBoardImage)
                     .toList();
-            addImagesToPDF(document, images, diagramsPerRow, 5, title);
-            var path = (location.toAbsolutePath() +"\\"+ (title + ".pdf"));
-            document.save( path);
+            addImagesToPDF(document, images, metadata.diagramsPerRow, 5, title);
+            var path = (location.toAbsolutePath() + "\\" + (title + ".pdf"));
+            document.save(path);
             log("PDF saved successfully : " + title);
         } catch (IOException e) {
             e.printStackTrace();
@@ -187,7 +191,7 @@ public class ChessBoardPDFGenerator {
         int imagesPerPage = imagesPerRow * imagesPerRow;
         int numPages = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
 
-        log("Creating pdf '"+title+"' of " + numPages + " pages");
+        log("Creating pdf '" + title + "' of " + numPages + " pages");
         for (int pageIdx = 0; pageIdx < numPages; pageIdx++) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);

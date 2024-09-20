@@ -50,6 +50,7 @@ public class Fen2PdfMain {
         rootPanel.add(generatePDFButton());
 
 
+
         JPanel bottom = new JPanel();
         bottom.setBackground(BACKGROUND_COLOR);
         var image = new ImagePanel("icons/icon.png");
@@ -97,24 +98,39 @@ public class Fen2PdfMain {
     private static JPanel generatePDFButton() {
         JPanel startButtonPanel = new JPanel(new FlowLayout(CENTER));
         startButtonPanel.setBackground(BACKGROUND_COLOR);
+
+        var startButton = new JButton("Generate PDF");
+        startButton.setToolTipText("Creates PDF's for all pgns in the selected folder");
+        var mirrorFenCheckbox = new JCheckBox("Flip positions");
+        mirrorFenCheckbox.setToolTipText("Mirrors all positions so a1 becomes h1. (Be careful with positions where castling is possible!)");
+        mirrorFenCheckbox.setBackground(BACKGROUND_COLOR);
+
         startButtonPanel.add(startButton);
+        startButtonPanel.add(mirrorFenCheckbox);
 
         startButton.addActionListener(e -> {
             if (!inProgress) {
                 startButton.setEnabled(false);
                 setBusyState(true);
                 int diagramsPerRow = Integer.parseInt(spinnerModel.getValue().toString());
+                boolean mirrorFen = mirrorFenCheckbox.isSelected();
+
                 Runnable whenDone = () -> {
                     setBusyState(false);
                     startButton.setEnabled(true);
                     FolderOpener.openFolder(workingDirectory);
                 };
-                var pdfWorker = new PdfGenerationWorker(diagramsPerRow, whenDone, workingDirectory, new Feedback(scrollableTextImageList));
+
+                var metadata = Metadata.builder().diagramsPerRow(diagramsPerRow).mirror(mirrorFen).build();
+
+                var pdfWorker = new PdfGenerationWorker(metadata, whenDone, workingDirectory, new Feedback(scrollableTextImageList));
                 pdfWorker.execute();
             }
         });
+
         return startButtonPanel;
     }
+
 
     private static JPanel selectWorkingDir(JFrame frame) {
         selectDirButton.addActionListener(e -> {

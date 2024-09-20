@@ -4,13 +4,13 @@ import javax.swing.*;
 import java.nio.file.Path;
 
 public class PdfGenerationWorker extends SwingWorker<Void, Void> {
-    private final int diagramsPerRow;
+    private final Metadata metadata;
     private final Runnable done;
     private final Feedback feedback;
     private final String workingDirectory;
 
-    public PdfGenerationWorker(int diagramsPerRow, Runnable done, String workingDirectory, Feedback feedback) {
-        this.diagramsPerRow = diagramsPerRow;
+    public PdfGenerationWorker(Metadata metadata, Runnable done, String workingDirectory, Feedback feedback) {
+        this.metadata = metadata;
         this.done = done;
         this.workingDirectory = workingDirectory;
         this.feedback = feedback;
@@ -19,7 +19,7 @@ public class PdfGenerationWorker extends SwingWorker<Void, Void> {
     @Override
     protected Void doInBackground() {
         Path location = Path.of(workingDirectory);
-        ChessBoardPDFGenerator.process(feedback, PgnFileLister.listPgnFilesInCurrentDirectory(workingDirectory), diagramsPerRow, location);
+        ChessBoardPDFGenerator.process(feedback, PgnFileLister.listPgnFilesInCurrentDirectory(workingDirectory), metadata, location);
         return null;
     }
 
