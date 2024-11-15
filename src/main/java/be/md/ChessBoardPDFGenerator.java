@@ -78,7 +78,7 @@ public class ChessBoardPDFGenerator {
     }
 
     private static Fen fenTransformations(Metadata metadata, Fen fen) {
-        return metadata.mirror ? fen.mirrorVertically() : fen;
+        return metadata.mirror ? fen.mirrorAndFlip() : fen;
     }
 
     public static String generateChessBoardImage(Fen fen) {

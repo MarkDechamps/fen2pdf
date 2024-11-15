@@ -5,7 +5,7 @@ public class MirrorFenVertically {
         String[] parts = fen.split(" ");
         String[] rows = parts[0].split("/");
 
-        StringBuilder mirroredFen = new StringBuilder();
+        var mirroredFen = new StringBuilder();
         for (String row : rows) {
             mirroredFen.append(mirrorRow(row)).append("/");
         }
@@ -25,17 +25,13 @@ public class MirrorFenVertically {
     // Helper method to mirror a single row of the chessboard
     private static String mirrorRow(String row) {
         StringBuilder mirroredRow = new StringBuilder();
-
-        // Traverse the row from left to right and append mirrored characters
         for (char c : row.toCharArray()) {
             if (Character.isDigit(c)) {
-                mirroredRow.append(c); // Append empty squares as they are
+                mirroredRow.append(c);
             } else {
-                mirroredRow.append(c); // Pieces remain unchanged
+                mirroredRow.append(c);
             }
         }
-
-        // Reverse the row to achieve the vertical mirroring
         return mirroredRow.reverse().toString();
     }
 }
