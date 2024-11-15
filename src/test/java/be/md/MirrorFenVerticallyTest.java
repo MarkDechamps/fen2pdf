@@ -2,10 +2,10 @@ package be.md;
 
 import org.junit.jupiter.api.Test;
 
-import static be.md.MirrorFen.mirrorFenVertically;
+import static be.md.MirrorFenVertically.mirrorFenVertically;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MirrorFenTest {
+class MirrorFenVerticallyTest {
     @Test
     public void testMirror() {
         var fen = "r3k2r/pppqppbp/2n2np1/4P3/3P4/2N2NP1/PPPQPPBP/R3K2R w KQkq - 0 1";

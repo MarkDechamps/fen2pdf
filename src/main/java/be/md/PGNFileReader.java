@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class PGNFileReader {
 
-    public static List<String> loadPgn(Path filePath) {
+    public static List<Fen> loadPgn(Path filePath) {
         try {
             Scanner scanner = new Scanner(filePath);
 
@@ -30,7 +30,7 @@ public class PGNFileReader {
         return List.of();
     }
 
-    public static List<String> extractFENsFromPGN(String pgnContent) {
+    public static List<Fen> extractFENsFromPGN(String pgnContent) {
         var games = Arrays.asList(pgnContent.split("(?m)^\\s*$"));
         return games.stream()
                 .map(String::trim)
@@ -42,6 +42,7 @@ public class PGNFileReader {
                             .findFirst()
                             .orElse(null);
                 }).filter(Objects::nonNull)
+                .map(Fen::new)
                 .collect(Collectors.toList());
     }
 }

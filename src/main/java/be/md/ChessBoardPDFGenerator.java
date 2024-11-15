@@ -23,7 +23,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
-import static be.md.MirrorFen.mirrorFenVertically;
+import static be.md.MirrorFenVertically.mirrorFenVertically;
 
 @Slf4j
 public class ChessBoardPDFGenerator {
@@ -61,14 +61,14 @@ public class ChessBoardPDFGenerator {
         genFeedback.setText(msg);
     }
 
-    private static void createPdfFileWithDiagramsFrom(Path location, String title, List<String> fens, Metadata metadata) {
+    private static void createPdfFileWithDiagramsFrom(Path location, String title, List<Fen> fens, Metadata metadata) {
         log("Creating pdf with " + fens.size() + " diagrams.");
         try (PDDocument document = new PDDocument()) {
             var images = fens.stream()
-                    .map(fen -> metadata.mirror ? mirrorFenVertically(fen) : fen)
+                    .map(fen -> fenTransformations(metadata, fen))
                     .map(ChessBoardPDFGenerator::generateChessBoardImage)
                     .toList();
-            addImagesToPDF(document, images, metadata.diagramsPerRow, 5, title);
+            addImagesToPDF(document, images, metadata, 5, title);
             var path = (location.toAbsolutePath() + "\\" + (title + ".pdf"));
             document.save(path);
             log("PDF saved successfully : " + title);
@@ -77,7 +77,11 @@ public class ChessBoardPDFGenerator {
         }
     }
 
-    public static String generateChessBoardImage(String fen) {
+    private static Fen fenTransformations(Metadata metadata, Fen fen) {
+        return metadata.mirror ? fen.mirrorVertically() : fen;
+    }
+
+    public static String generateChessBoardImage(Fen fen) {
         Optional<String> cachedFile = fetchFromCache(fen);
 
         cachedFile.ifPresent(s -> {
@@ -101,7 +105,7 @@ public class ChessBoardPDFGenerator {
 
     }
 
-    private static Optional<String> fetchFromCache(String fen) {
+    private static Optional<String> fetchFromCache(Fen fen) {
         Path tempFilePath = getTempFilePath(fen);
         boolean existsInCache = tempFilePath.toFile().exists();
         if (existsInCache) {
@@ -111,11 +115,7 @@ public class ChessBoardPDFGenerator {
         return existsInCache ? Optional.of(tempFilePath.toFile().getAbsolutePath()) : Optional.empty();
     }
 
-    private static String escapeFen(String fen) {
-        return fen.replaceAll(" ", "%20");
-    }
-
-    private static Path getTempFilePath(String fen) {
+    private static Path getTempFilePath(Fen fen) {
 
         Path cacheDir = Paths.get("cache");
         if (Files.notExists(cacheDir)) {
@@ -131,12 +131,12 @@ public class ChessBoardPDFGenerator {
         return cacheDir.resolve(fileName);
     }
 
-    private static String escapeForCache(String fen) {
-        return escapeFen(fen).replaceAll("/", "@").replaceAll("-", "_") + ".png";
+    private static String escapeForCache(Fen fen) {
+        return fen.escapeFen().replaceAll("/", "@").replaceAll("-", "_") + ".png";
     }
 
-    public static String downloadFen2pngImage(String fen) throws IOException {
-        String fen2PgnUrl = "https://fen2png.com/api/?fen=" + escapeFen(fen);
+    public static String downloadFen2pngImage(Fen fen) throws IOException {
+        String fen2PgnUrl = "https://fen2png.com/api/?fen=" + fen.escapeFen();
         URL url = new URL(fen2PgnUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
@@ -187,7 +187,8 @@ public class ChessBoardPDFGenerator {
     }
 
 
-    public static void addImagesToPDF(PDDocument document, List<String> imagePaths, int imagesPerRow, int spacing, String title) throws IOException {
+    public static void addImagesToPDF(PDDocument document, List<String> imagePaths, Metadata metadata, int spacing, String title) throws IOException {
+        int imagesPerRow = metadata.diagramsPerRow;
         int imagesPerPage = imagesPerRow * imagesPerRow;
         int numPages = (int) Math.ceil((double) imagePaths.size() / imagesPerPage);
 
@@ -195,7 +196,7 @@ public class ChessBoardPDFGenerator {
         for (int pageIdx = 0; pageIdx < numPages; pageIdx++) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
-            addTitleAndPageNumber(document, title, page, pageIdx);
+            addTitleAndPageNumber(document, title, page, pageIdx, metadata.addPageNumbers);
             addImages(document, imagePaths, imagesPerRow, spacing, page, pageIdx, imagesPerPage);
         }
     }
@@ -233,7 +234,7 @@ public class ChessBoardPDFGenerator {
         }
     }
 
-    private static void addTitleAndPageNumber(PDDocument document, String title, PDPage page, int pageIdx) throws IOException {
+    private static void addTitleAndPageNumber(PDDocument document, String title, PDPage page, int pageIdx, boolean addPageNumbers) throws IOException {
         try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
             contentStream.beginText();
@@ -241,10 +242,12 @@ public class ChessBoardPDFGenerator {
             contentStream.showText(title);
             contentStream.endText();
 
-            contentStream.beginText();
-            contentStream.newLineAtOffset(page.getMediaBox().getWidth() - 100, page.getMediaBox().getHeight() - 50);
-            contentStream.showText("Page " + (pageIdx + 1));
-            contentStream.endText();
+            if (addPageNumbers) {
+                contentStream.beginText();
+                contentStream.newLineAtOffset(page.getMediaBox().getWidth() - 100, page.getMediaBox().getHeight() - 50);
+                contentStream.showText("Page " + (pageIdx + 1));
+                contentStream.endText();
+            }
         }
     }
 }

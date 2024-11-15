@@ -1,6 +1,6 @@
 package be.md;
 
-public class MirrorFen {
+public class MirrorFenVertically {
     public static String mirrorFenVertically(String fen) {
         String[] parts = fen.split(" ");
         String[] rows = parts[0].split("/");

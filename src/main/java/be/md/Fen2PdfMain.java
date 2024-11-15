@@ -47,7 +47,7 @@ public class Fen2PdfMain {
         rootPanel.add(selectWorkingDir(frame));
         rootPanel.add(Box.createVerticalStrut(10));
         rootPanel.add(scollingTextRegion());
-        rootPanel.add(generatePDFButton());
+        rootPanel.add(buttons());
 
 
 
@@ -95,18 +95,24 @@ public class Fen2PdfMain {
         return rootPanel;
     }
 
-    private static JPanel generatePDFButton() {
+    private static JPanel buttons() {
         JPanel startButtonPanel = new JPanel(new FlowLayout(CENTER));
         startButtonPanel.setBackground(BACKGROUND_COLOR);
 
         var startButton = new JButton("Generate PDF");
         startButton.setToolTipText("Creates PDF's for all pgns in the selected folder");
+
         var mirrorFenCheckbox = new JCheckBox("Flip positions");
         mirrorFenCheckbox.setToolTipText("Mirrors all positions so a1 becomes h1. (Be careful with positions where castling is possible!)");
         mirrorFenCheckbox.setBackground(BACKGROUND_COLOR);
 
+        var pagenumberCheckbox = new JCheckBox("Page numbers");
+        pagenumberCheckbox.setToolTipText("Add page numbers to pdf");
+        pagenumberCheckbox.setBackground(BACKGROUND_COLOR);
+
         startButtonPanel.add(startButton);
         startButtonPanel.add(mirrorFenCheckbox);
+        startButtonPanel.add(pagenumberCheckbox);
 
         startButton.addActionListener(e -> {
             if (!inProgress) {
@@ -114,6 +120,7 @@ public class Fen2PdfMain {
                 setBusyState(true);
                 int diagramsPerRow = Integer.parseInt(spinnerModel.getValue().toString());
                 boolean mirrorFen = mirrorFenCheckbox.isSelected();
+                boolean pageNumbers = pagenumberCheckbox.isSelected();
 
                 Runnable whenDone = () -> {
                     setBusyState(false);
@@ -121,7 +128,10 @@ public class Fen2PdfMain {
                     FolderOpener.openFolder(workingDirectory);
                 };
 
-                var metadata = Metadata.builder().diagramsPerRow(diagramsPerRow).mirror(mirrorFen).build();
+                var metadata = Metadata.builder()
+                        .diagramsPerRow(diagramsPerRow)
+                        .addPageNumbers(pageNumbers)
+                        .mirror(mirrorFen).build();
 
                 var pdfWorker = new PdfGenerationWorker(metadata, whenDone, workingDirectory, new Feedback(scrollableTextImageList));
                 pdfWorker.execute();
