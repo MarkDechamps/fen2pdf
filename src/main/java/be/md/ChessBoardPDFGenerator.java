@@ -23,8 +23,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
-import static be.md.MirrorFenVertically.mirrorFenVertically;
-
 @Slf4j
 public class ChessBoardPDFGenerator {
     private static Feedback genFeedback;
@@ -69,6 +67,8 @@ public class ChessBoardPDFGenerator {
                     .map(ChessBoardPDFGenerator::generateChessBoardImage)
                     .toList();
             addImagesToPDF(document, images, metadata, 5, title);
+            addTextualDescriptionsToPDF(document,fens,metadata,5,title, metadata.language);
+
             var path = (location.toAbsolutePath() + "\\" + (title + ".pdf"));
             document.save(path);
             log("PDF saved successfully : " + title);
@@ -201,6 +201,19 @@ public class ChessBoardPDFGenerator {
         }
     }
 
+    private static void addTextualDescriptionsToPDF(PDDocument document, List<Fen> fens, Metadata metadata, int spacing, String title, SupportedLanguage lang) throws IOException {
+        if(lang ==SupportedLanguage.none)return;
+
+        log("Adding textual description of images in: "+lang.toString());
+        int numPages = (fens.size()/10)+1;//always at least one page
+        for (int pageIdx = 0; pageIdx < numPages; pageIdx++) {
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            addTitleAndPageNumber(document, title, page, pageIdx, metadata.addPageNumbers);
+            addText(document, fens, spacing, page, pageIdx, lang);
+        }
+    }
+
     private static void addImages(PDDocument document, List<String> imagePaths, int imagesPerRow, int spacing, PDPage page, int pageIdx, int imagesPerPage) throws IOException {
         try (PDPageContentStream contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true)) {
             int rowStartIdx = pageIdx * imagesPerPage;
@@ -233,7 +246,6 @@ public class ChessBoardPDFGenerator {
             }
         }
     }
-
     private static void addTitleAndPageNumber(PDDocument document, String title, PDPage page, int pageIdx, boolean addPageNumbers) throws IOException {
         try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
@@ -250,5 +262,50 @@ public class ChessBoardPDFGenerator {
             }
         }
     }
+
+    private static void addText(PDDocument document, List<Fen> fens, int spacing, PDPage page, int pageIdx, SupportedLanguage language) throws IOException {
+        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+            contentStream.setFont(PDType1Font.HELVETICA, 12);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(50, 750);
+
+            int startIdx = pageIdx * 10;
+            float currentY = 750;
+            int lineSpacing = spacing + 8;
+            int fenSpacing = spacing + 8;
+            int separatorSpacing = spacing + 12;
+
+            for (int i = startIdx; i < Math.min(startIdx + 10, fens.size()); i++) {
+                Fen fen = fens.get(i);
+                String fenText = FenToText.fenToText(fen.position(), language);
+                String[] lines = fenText.split("\\n");
+
+                for (String line : lines) {
+                    if (line.trim().endsWith(":")) {
+                        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+                    } else {
+                        contentStream.setFont(PDType1Font.HELVETICA, 12);
+                    }
+                    contentStream.showText(line);
+                    contentStream.newLineAtOffset(0, -lineSpacing);
+                    currentY -= lineSpacing;
+                    if (currentY < 50) {
+                        contentStream.endText();
+                        return;
+                    }
+                }
+
+                contentStream.newLineAtOffset(0, -separatorSpacing);
+                contentStream.showText("------------------------------------");
+                contentStream.newLineAtOffset(0, -fenSpacing);
+                currentY -= (separatorSpacing + fenSpacing);
+            }
+
+            contentStream.endText();
+        }
+    }
+
+
+
 }
 

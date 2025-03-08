@@ -7,11 +7,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static be.md.Messages.*;
 import static java.awt.FlowLayout.*;
+import static java.util.Objects.*;
 import static javax.swing.JFileChooser.*;
 
 public class Fen2PdfMain {
@@ -25,6 +27,7 @@ public class Fen2PdfMain {
     private static boolean inProgress = false;
     private static String workingDirectory;
     private static final JButton selectDirButton = new JButton(select_working_dir);
+    private static final JComboBox<SupportedLanguage> languageDropdown = new JComboBox<>(SupportedLanguage.values());
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -32,6 +35,19 @@ public class Fen2PdfMain {
             createAndShowGUI();
         });
 
+    }
+
+    private static JPanel selectLanguagePanel() {
+
+        JPanel panel = new JPanel(new FlowLayout(CENTER));
+        panel.setBackground(BACKGROUND_COLOR);
+
+        JLabel label = new JLabel("Add FEN descriptions:");
+        languageDropdown.setSelectedItem(SupportedLanguage.none);
+
+        panel.add(label);
+        panel.add(languageDropdown);
+        return panel;
     }
 
     private static void createAndShowGUI() {
@@ -48,8 +64,10 @@ public class Fen2PdfMain {
         rootPanel.add(Box.createVerticalStrut(10));
         rootPanel.add(scollingTextRegion());
         rootPanel.add(buttons());
+        rootPanel.add(Box.createVerticalStrut(10));
 
-
+        // Add language selection panel under buttons
+        rootPanel.add(selectLanguagePanel());
 
         JPanel bottom = new JPanel();
         bottom.setBackground(BACKGROUND_COLOR);
@@ -64,6 +82,8 @@ public class Fen2PdfMain {
         frame.add(rootPanel);
         frame.setVisible(true);
     }
+
+
 
     private static void footer(JPanel bottom) {
         JPanel bottomText = new JPanel();
@@ -131,6 +151,7 @@ public class Fen2PdfMain {
                 var metadata = Metadata.builder()
                         .diagramsPerRow(diagramsPerRow)
                         .addPageNumbers(pageNumbers)
+                        .language((SupportedLanguage) languageDropdown.getSelectedItem())
                         .mirror(mirrorFen).build();
 
                 var pdfWorker = new PdfGenerationWorker(metadata, whenDone, workingDirectory, new Feedback(scrollableTextImageList));
