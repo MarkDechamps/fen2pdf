@@ -1,6 +1,7 @@
 Fen2Pdf is a small tool for Chess teachers.
 
 It converts a pgn file with FEN notations (you can create such file easily in lichess or any chess program) to a PDF file with exercises you can print out and hand over to your students.
+It can also add a textual representation of the FEN for visualization training 
 
 Enjoy!
 

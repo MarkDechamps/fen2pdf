@@ -44,8 +44,7 @@ public class ChessBoardPDFGenerator {
                 createPdfFileWithDiagramsFrom(location, name, parsedPgn, metadata);
             });
         } else {
-            log.info("No pgn found in {}. Exiting.", location);
-            System.exit(1);
+            log("No pgn found in "+location+". Choose another location.");
         }
     }
 
