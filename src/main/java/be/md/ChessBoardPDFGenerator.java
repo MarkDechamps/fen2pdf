@@ -59,6 +59,11 @@ public class ChessBoardPDFGenerator {
     }
 
     private static void createPdfFileWithDiagramsFrom(Path location, String title, List<Fen> fens, Metadata metadata) {
+        if(fens.isEmpty()){
+            log("No images found for "+title+". Skipping the file.");
+            return;
+        }
+
         log("Creating pdf with " + fens.size() + " diagrams.");
         try (PDDocument document = new PDDocument()) {
             var images = fens.stream()
