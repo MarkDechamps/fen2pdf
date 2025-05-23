@@ -273,7 +273,7 @@ public class ChessBoardPDFGenerator {
             contentStream.beginText();
             contentStream.newLineAtOffset(50, 750);
 
-            int startIdx = pageIdx * 10;
+            int startIdx = pageIdx * 5;
             float currentY = 750;
             int lineSpacing = spacing + 8;
             int fenSpacing = spacing + 8;
