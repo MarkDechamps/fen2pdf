@@ -44,7 +44,7 @@ public class ChessBoardPDFGenerator {
                 createPdfFileWithDiagramsFrom(location, name, parsedPgn, metadata);
             });
         } else {
-            log("No pgn found in "+location+". Choose another location.");
+            log("No pgn found in " + location + ". Choose another location.");
         }
     }
 
@@ -59,8 +59,8 @@ public class ChessBoardPDFGenerator {
     }
 
     private static void createPdfFileWithDiagramsFrom(Path location, String title, List<Fen> fens, Metadata metadata) {
-        if(fens.isEmpty()){
-            log("No images found for "+title+". Skipping the file.");
+        if (fens.isEmpty()) {
+            log("No images found for " + title + ". Skipping the file.");
             return;
         }
 
@@ -71,7 +71,7 @@ public class ChessBoardPDFGenerator {
                     .map(ChessBoardPDFGenerator::generateChessBoardImage)
                     .toList();
             addImagesToPDF(document, images, metadata, 5, title);
-            addTextualDescriptionsToPDF(document,fens,metadata,5,title, metadata.language);
+            addTextualDescriptionsToPDF(document, fens, metadata, title, metadata.language);
 
             var path = (location.toAbsolutePath() + "\\" + (title + ".pdf"));
             document.save(path);
@@ -205,16 +205,29 @@ public class ChessBoardPDFGenerator {
         }
     }
 
-    private static void addTextualDescriptionsToPDF(PDDocument document, List<Fen> fens, Metadata metadata, int spacing, String title, SupportedLanguage lang) throws IOException {
-        if(lang ==SupportedLanguage.none)return;
+    private static void addTextualDescriptionsToPDF(PDDocument document, List<Fen> fens, Metadata metadata, String title, SupportedLanguage lang) throws IOException {
+        if (lang == SupportedLanguage.none) return;
 
-        log("Adding textual description of images in: "+lang.toString());
-        int numPages = (fens.size()/10)+1;//always at least one page
+        log("Adding textual description of images in: " + lang.toString());
+        int numPages = (fens.size() / 10) + 1;//always at least one page
         for (int pageIdx = 0; pageIdx < numPages; pageIdx++) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
             addTitleAndPageNumber(document, title, page, pageIdx, metadata.addPageNumbers);
-            addText(document, fens, spacing, page, pageIdx, lang);
+
+            fens.stream().map(fen -> FenToText.fenToText(fen.position(), lang))
+                    .forEach(text -> {
+                        try {
+                            Files.writeString(Paths.get(title + ".txt"), text + System.lineSeparator()+"======================\n",
+                                    java.nio.file.StandardOpenOption.CREATE,
+                                    java.nio.file.StandardOpenOption.APPEND);
+                        } catch (IOException e) {
+                            log("Failed to write FEN text to file: " + e.getMessage());
+                        }
+                    });
+
+
+            addText(document, fens, 5, page, pageIdx, lang);
         }
     }
 
@@ -250,6 +263,7 @@ public class ChessBoardPDFGenerator {
             }
         }
     }
+
     private static void addTitleAndPageNumber(PDDocument document, String title, PDPage page, int pageIdx, boolean addPageNumbers) throws IOException {
         try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
@@ -308,7 +322,6 @@ public class ChessBoardPDFGenerator {
             contentStream.endText();
         }
     }
-
 
 
 }
