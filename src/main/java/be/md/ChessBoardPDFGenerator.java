@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -145,6 +146,10 @@ public class ChessBoardPDFGenerator {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setDoInput(true);
+        connection.setConnectTimeout(5000); // 5 seconds connection timeout
+        connection.setReadTimeout(10000);   // 10 seconds read timeout
+        connection.setRequestProperty("User-Agent", "Fen2Pdf/1.0");
+        
         Path target = getTempFilePath(fen);
         if (!target.toFile().exists()) {
             try (InputStream inputStream = connection.getInputStream()) {
@@ -160,6 +165,12 @@ public class ChessBoardPDFGenerator {
                 } else {
                     throw new IOException("No image element found in the HTML response.");
                 }
+            } catch (SocketTimeoutException e) {
+                log.error("Timeout while downloading image for FEN: " + fen.position());
+                throw new IOException("Timeout while downloading image", e);
+            } catch (IOException e) {
+                log.error("Error downloading image for FEN: " + fen.position() + " - " + e.getMessage());
+                throw e;
             } finally {
                 connection.disconnect();
             }

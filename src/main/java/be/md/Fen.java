@@ -12,14 +12,8 @@ public record Fen(String position) {
     }
 
     public Fen mirrorAndFlip() {
-        var lines = position.split(" ");
-        var pieces = lines[0];
-        var rest = toggleMetadata(position.substring(pieces.length()));
-
-        String[] flippedBoard = this.rotate(pieces.split("/"));
-        var newPosition = String.join("/", flippedBoard);
-
-        return new Fen(toggleString(newPosition) + rest);
+        ChessPosition chessPosition = new ChessPosition(position);
+        return new Fen(chessPosition.mirrorAndFlip().getFen());
     }
 
     private String[] rotate(String[] split) {
