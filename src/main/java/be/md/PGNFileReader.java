@@ -1,48 +1,66 @@
 package be.md;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.stream.Collectors;
+import com.github.bhlangonijr.chesslib.Board;
+import com.github.bhlangonijr.chesslib.game.Game;
+import com.github.bhlangonijr.chesslib.pgn.PgnHolder;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PGNFileReader {
 
     public static List<Fen> loadPgn(Path filePath) {
         try {
-            Scanner scanner = new Scanner(filePath);
-
-            StringBuilder pgnBuilder = new StringBuilder();
-            while (scanner.hasNextLine()) {
-                pgnBuilder.append(scanner.nextLine()).append("\n");
+            // Read file content and remove BOM if present
+            String content = new String(java.nio.file.Files.readAllBytes(filePath), java.nio.charset.StandardCharsets.UTF_8);
+            if (content.startsWith("\uFEFF")) {
+                content = content.substring(1);
             }
-            scanner.close();
-            var pgnContent = pgnBuilder.toString();
-
-            return extractFENsFromPGN(pgnContent);
-
-        } catch (IOException e) {
-            System.err.println(Messages.pgn_not_found);
+            
+            // Write content back to a temporary file without BOM
+            Path tempFile = java.nio.file.Files.createTempFile("pgn", ".pgn");
+            java.nio.file.Files.write(tempFile, content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            
+            try {
+                PgnHolder pgnHolder = new PgnHolder(tempFile.toString());
+                pgnHolder.loadPgn();
+                
+                List<Fen> fenPositions = new ArrayList<>();
+                
+                for (Game game : pgnHolder.getGames()) {
+                    // Add initial FEN if present
+                    if (game.getFen() != null) {
+                        fenPositions.add(new Fen(game.getFen()));
+                    }
+                    
+                    // Play through the moves and look for {[#]} annotations
+                    Board board = new Board();
+                    if (game.getFen() != null) {
+                        board.loadFromFen(game.getFen());
+                    }
+                    
+                    AtomicInteger moveNumber = new AtomicInteger(0);
+                    game.getHalfMoves().forEach(move -> {
+                        // Check if the move has the {[#]} annotation
+                        String comment = game.getCommentary().get(moveNumber.get());
+                        if (comment != null && comment.contains("[#]")) {
+                            fenPositions.add(new Fen(board.getFen()));
+                        }
+                        board.doMove(move);
+                        moveNumber.incrementAndGet();
+                    });
+                }
+                
+                return fenPositions;
+            } finally {
+                // Clean up temporary file
+                java.nio.file.Files.deleteIfExists(tempFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Error processing PGN file: " + e.getMessage());
+            return List.of();
         }
-        return List.of();
-    }
-
-    public static List<Fen> extractFENsFromPGN(String pgnContent) {
-        var games = Arrays.asList(pgnContent.split("(?m)^\\s*$"));
-        return games.stream()
-                .map(String::trim)
-                .map(game -> {
-                    List<String> lines = Arrays.asList(game.split("\n"));
-                    return lines.stream()
-                            .filter(line -> line.startsWith("[FEN "))
-                            .map(line -> line.substring(line.indexOf("\"") + 1, line.lastIndexOf("\"")))
-                            .findFirst()
-                            .orElse(null);
-                }).filter(Objects::nonNull)
-                .map(Fen::new)
-                .collect(Collectors.toList());
     }
 }
