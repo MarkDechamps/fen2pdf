@@ -39,6 +39,7 @@ application/lib
 .gradle/
 gradle/*
 /cache
+/application/cache/
 /config.properties
 /application/config.properties
 /de penning.pdf
