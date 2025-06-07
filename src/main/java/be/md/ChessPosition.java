@@ -3,11 +3,6 @@ package be.md;
 import com.github.bhlangonijr.chesslib.Board;
 import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
-import com.github.bhlangonijr.chesslib.move.Move;
-import com.github.bhlangonijr.chesslib.Piece;
-import com.github.bhlangonijr.chesslib.Rank;
-import com.github.bhlangonijr.chesslib.File;
-import com.github.bhlangonijr.chesslib.CastleRight;
 
 public class ChessPosition {
     private final Board board;
@@ -22,59 +17,18 @@ public class ChessPosition {
     }
 
     public ChessPosition mirrorAndFlip() {
-        Board mirroredBoard = new Board();
-        mirroredBoard.clear(); // Clear the board before setting new pieces
-        
-        // Mirror the board
-        for (Square square : Square.values()) {
-            if (square == Square.NONE) continue; // Skip the NONE square
-            
-            // Get original position
-            File originalFile = square.getFile();
-            Rank originalRank = square.getRank();
-            
-            // Calculate mirrored position
-            File mirroredFile = File.values()[7 - originalFile.ordinal()];
-            Rank mirroredRank = Rank.values()[7 - originalRank.ordinal()];
-            Square mirroredSquare = Square.encode(mirroredRank, mirroredFile);
-            
-            // Get and set the piece with flipped case
-            Piece piece = board.getPiece(square);
-            if (piece != Piece.NONE) {
-                // Flip the piece's side
-                Side originalSide = piece.getPieceSide();
-                Side flippedSide = originalSide == Side.WHITE ? Side.BLACK : Side.WHITE;
-                Piece flippedPiece = Piece.make(flippedSide, piece.getPieceType());
-                mirroredBoard.setPiece(flippedPiece, mirroredSquare);
-            }
-        }
-        
-        // Flip the side to move
-        mirroredBoard.setSideToMove(board.getSideToMove() == Side.WHITE ? Side.BLACK : Side.WHITE);
-        
-        // Handle castling rights
-        String castlingRights = board.getCastleRight(Side.WHITE).toString() + board.getCastleRight(Side.BLACK).toString();
-        if (!castlingRights.equals("-")) {
-            if (castlingRights.contains("K")) mirroredBoard.getCastleRight().put(Side.WHITE, CastleRight.KING_SIDE);
-            if (castlingRights.contains("Q")) mirroredBoard.getCastleRight().put(Side.WHITE, CastleRight.QUEEN_SIDE);
-            if (castlingRights.contains("k")) mirroredBoard.getCastleRight().put(Side.BLACK, CastleRight.KING_SIDE);
-            if (castlingRights.contains("q")) mirroredBoard.getCastleRight().put(Side.BLACK, CastleRight.QUEEN_SIDE);
-        }
-        
-        // Handle en passant square
-        if (board.getEnPassant() != Square.NONE) {
-            File originalFile = board.getEnPassant().getFile();
-            Rank originalRank = board.getEnPassant().getRank();
-            File mirroredFile = File.values()[7 - originalFile.ordinal()];
-            Rank mirroredRank = Rank.values()[7 - originalRank.ordinal()];
-            mirroredBoard.setEnPassant(Square.encode(mirroredRank, mirroredFile));
-        }
-        
-        // Copy halfmove counter and fullmove number
-        mirroredBoard.setHalfMoveCounter(board.getHalfMoveCounter());
-        mirroredBoard.setMoveCounter(board.getMoveCounter());
-        
-        return new ChessPosition(mirroredBoard.getFen());
+        var fen = ReverseFenColors.flipFenVertically(board.getFen(), true);
+
+        var flippedBoard = new Board();
+        flippedBoard.loadFromFen(fen);
+
+        flippedBoard.setSideToMove(board.getSideToMove());
+        flippedBoard.getCastleRight().putAll(board.getCastleRight());
+        flippedBoard.setEnPassant(board.getEnPassant());
+        flippedBoard.setHalfMoveCounter(board.getHalfMoveCounter());
+        flippedBoard.setMoveCounter(board.getMoveCounter());
+
+        return new ChessPosition(flippedBoard.getFen());
     }
 
     public String getTextDescription(SupportedLanguage language) {

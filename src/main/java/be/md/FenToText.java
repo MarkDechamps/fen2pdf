@@ -3,10 +3,56 @@ import java.util.*;
 
 public class FenToText {
 
-        public static String fenToText(String fen, SupportedLanguage lang) {
-            ChessPosition position = new ChessPosition(fen);
-            return position.getTextDescription(lang);
+    public static String fenToText(String fen,SupportedLanguage lang) {
+        String[] parts = fen.split(" ");
+        String board = parts[0];
+        char turn = parts[1].charAt(0);
+
+        var translation = translation(lang);
+
+
+        List<String> whitePawns = new ArrayList<>();
+        List<String> blackPawns = new ArrayList<>();
+        List<String> whitePieces = new ArrayList<>();
+        List<String> blackPieces = new ArrayList<>();
+
+        String[] ranks = board.split("/");
+        for (int rank = 0; rank < 8; rank++) {
+            int fileIndex = 0;
+            for (char c : ranks[rank].toCharArray()) {
+                if (Character.isDigit(c)) {
+                    fileIndex += c - '0';
+                } else {
+                    char fileChar = (char) ('a' + fileIndex);
+                    int rankNumber = 8 - rank;
+                    String position = fileChar + String.valueOf(rankNumber);
+                    if (Character.isUpperCase(c)) {
+                        if (c == 'P') {
+                            whitePawns.add(position);
+                        } else {
+                            whitePieces.add(translation.pieceNames.get(c) + position);
+                        }
+                    } else {
+                        if (c == 'p') {
+                            blackPawns.add(position);
+                        } else {
+                            blackPieces.add(translation.pieceNames.get(c) + position);
+                        }
+                    }
+                    fileIndex++;
+                }
+            }
         }
+
+        return String.format(
+                translation.white+":\n"+translation.pawns +": %s\n"+translation.pieces+": %s\n\n"+translation.black+":\n"+translation.pawns +": %s\n"+translation.pieces+" %s\n\n%s "+translation.toMove+".",
+                String.join(",", whitePawns),
+                String.join(",", whitePieces),
+                String.join(",", blackPawns),
+                String.join(",", blackPieces),
+                (turn == 'w') ? translation.white : translation.black
+        );
+    }
 
     record Translation(String lang, Map<Character, String> pieceNames, String white, String black, String pawns, String pieces,String toMove){
     }
@@ -74,8 +120,8 @@ public class FenToText {
     }
 
     public static void main(String[] args) {
-            String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-            System.out.println(fenToText(fen,SupportedLanguage.nl));
-        }
+        String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        System.out.println(fenToText(fen,SupportedLanguage.nl));
+    }
 }
 
